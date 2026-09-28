@@ -1,0 +1,55 @@
+name: hinge_loss
+skill_id: hinge_loss
+category: loss
+description: Max-margin retrieval loss.
+inputs:
+- name: pos_score
+  shape: '[batch_size]'
+- name: neg_score
+  shape: '[batch_size, n_neg]'
+outputs:
+- name: loss
+  shape: '[]'
+task_types: &id001
+- matching
+source:
+  file: torch_rechub/basic/loss_func.py
+  class_or_function: HingeLoss
+  extraction_type: wrapped_exact
+retrieval:
+  summary: Use this for FaceBookDSSM-style max-margin matching.
+  task_types:
+  - matching
+  architecture_roles:
+  - loss
+  - margin_loss
+  input_modalities:
+  - pos_score
+  - neg_score
+  output_semantics:
+  - loss
+  model_families:
+  - FaceBookDSSM
+  aliases:
+  - hinge loss
+  - margin loss
+  use_when:
+  - Use this for FaceBookDSSM-style max-margin matching.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for FaceBookDSSM-style max-margin matching.
+composition:
+  requires:
+  - pos_score
+  - neg_score
+  produces:
+  - loss
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: hinge_loss
+    params: {}

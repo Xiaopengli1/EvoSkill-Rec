@@ -1,0 +1,58 @@
+name: all_item_scoring_adapter
+skill_id: all_item_scoring_adapter
+category: matching
+description: Full-catalog scoring for session/user representations.
+inputs:
+- name: query_embedding
+  shape: '[batch_size, embedding_dim]'
+- name: item_embeddings
+  shape: '[num_items, embedding_dim]'
+outputs:
+- name: all_item_scores
+  shape: '[batch_size, num_items]'
+task_types: &id001
+- matching
+- sequence
+source:
+  file: torch_rechub/models/matching/narm.py
+  class_or_function: all-item scoring path
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this for NARM/STAMP full item catalog scoring.
+  task_types:
+  - matching
+  - sequence
+  architecture_roles:
+  - head
+  - full_catalog_scoring
+  input_modalities:
+  - query_embedding
+  - item_embeddings
+  output_semantics:
+  - all_item_scores
+  model_families:
+  - NARM
+  - STAMP
+  aliases:
+  - all item scoring
+  - full catalog logits
+  use_when:
+  - Use this for NARM/STAMP full item catalog scoring.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for NARM/STAMP full item catalog scoring.
+composition:
+  requires:
+  - query_embedding
+  - item_embeddings
+  produces:
+  - all_item_scores
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: all_item_scoring_adapter
+    params: {}

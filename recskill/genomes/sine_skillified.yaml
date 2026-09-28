@@ -1,0 +1,51 @@
+model_name: sine_skillified
+task_type: matching
+
+inputs:
+  history_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+  pos_item_features:
+    shape: [batch_size, 1]
+    dtype: int64
+  neg_item_features:
+    shape: [batch_size, n_neg]
+    dtype: int64
+
+skills:
+  - id: shared_item_embedding
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [history_features, pos_item_features, neg_item_features]
+      output_keys: [history_embeddings, pos_item_embeddings, neg_item_embeddings]
+      vocab_size: ${item_vocab_size}
+      embedding_dim: ${embedding_dim}
+
+  - id: sine_encoder
+    skill: sine_interest_encoder
+    params:
+      input_key: history_embeddings
+      ids_key: history_features
+      output_key: user_embedding
+      embedding_dim: ${embedding_dim}
+      hidden_dim: ${hidden_dim}
+      num_concept: ${num_concept}
+      num_intention: ${num_intention}
+      seq_len: ${seq_len}
+      num_heads: ${num_heads}
+      temperature: ${temperature}
+
+  - id: item_candidates
+    skill: concat_fusion
+    params:
+      input_keys: [pos_item_embeddings, neg_item_embeddings]
+      output_key: item_candidates
+      dim: 1
+
+  - id: score
+    skill: candidate_dot_logits
+    params:
+      user_key: user_embedding
+      candidate_key: item_candidates
+      output_key: scores
+      temperature: ${temperature}

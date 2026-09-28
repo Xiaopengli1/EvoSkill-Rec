@@ -1,0 +1,58 @@
+name: in_batch_negative_head
+skill_id: in_batch_negative_head
+category: matching
+description: Build in-batch negative logits from query and item embeddings.
+inputs:
+- name: query_embedding
+  shape: '[batch_size, embedding_dim]'
+- name: item_embedding
+  shape: '[batch_size, embedding_dim]'
+outputs:
+- name: sampled_logits
+  shape: '[batch_size, batch_size]'
+task_types: &id001
+- matching
+- sequence
+source:
+  file: torch_rechub/models/matching
+  class_or_function: in-batch negative scoring head
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this when other batch items are negatives for retrieval training.
+  task_types:
+  - matching
+  - sequence
+  architecture_roles:
+  - head
+  - in_batch_negative
+  input_modalities:
+  - query_embedding
+  - item_embedding
+  output_semantics:
+  - sampled_logits
+  model_families:
+  - SASRec
+  - YoutubeSBC
+  aliases:
+  - in batch negative head
+  - in batch logits
+  use_when:
+  - Use this when other batch items are negatives for retrieval training.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this when other batch items are negatives for retrieval training.
+composition:
+  requires:
+  - query_embedding
+  - item_embedding
+  produces:
+  - sampled_logits
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: in_batch_negative_head
+    params: {}

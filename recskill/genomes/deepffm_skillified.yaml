@@ -1,0 +1,70 @@
+model_name: deepffm_skillified
+task_type: ctr
+
+inputs:
+  linear_features:
+    shape: [batch_size, num_linear_fields]
+    dtype: int64
+  cross_features:
+    shape: [batch_size, num_cross_fields]
+    dtype: int64
+
+skills:
+  - id: linear_embedding
+    skill: field_embedding
+    params:
+      input_key: linear_features
+      output_key: linear_embeddings
+      vocab_sizes: ${linear_vocab_sizes}
+      embedding_dim: ${linear_embedding_dim}
+
+  - id: linear_sum
+    skill: field_sum
+    params:
+      input_key: linear_embeddings
+      output_key: linear_logit
+
+  - id: cross_embedding
+    skill: field_embedding
+    params:
+      input_key: cross_features
+      output_key: cross_embeddings
+      vocab_sizes: ${cross_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: ffm
+    skill: ffm_interaction
+    params:
+      input_key: cross_embeddings
+      output_key: ffm_interactions
+      num_fields: ${num_fields}
+      reduce_sum: false
+
+  - id: flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: ffm_interactions
+      output_key: ffm_flat
+
+  - id: ffm_mlp
+    skill: mlp_tower
+    params:
+      input_key: ffm_flat
+      output_key: ffm_logit
+      input_dim: ${ffm_input_dim}
+      hidden_dims: ${hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: true
+
+  - id: fusion
+    skill: additive_fusion
+    params:
+      input_keys: [linear_logit, ffm_logit]
+      output_key: logits
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

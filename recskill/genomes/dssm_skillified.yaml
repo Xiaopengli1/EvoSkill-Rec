@@ -1,0 +1,87 @@
+model_name: dssm_skillified
+task_type: matching
+
+inputs:
+  user_features:
+    shape: [batch_size, num_user_fields]
+    dtype: int64
+  item_features:
+    shape: [batch_size, num_item_fields]
+    dtype: int64
+
+skills:
+  - id: user_embedding
+    skill: field_embedding
+    params:
+      input_key: user_features
+      output_key: user_field_embeddings
+      vocab_sizes: ${user_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: user_flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: user_field_embeddings
+      output_key: user_flat
+
+  - id: user_tower
+    skill: mlp_tower
+    params:
+      input_key: user_flat
+      output_key: user_raw
+      input_dim: ${user_input_dim}
+      hidden_dims: ${user_hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: false
+
+  - id: user_normalize
+    skill: normalize_embedding
+    params:
+      input_key: user_raw
+      output_key: user_embedding
+
+  - id: item_embedding
+    skill: field_embedding
+    params:
+      input_key: item_features
+      output_key: item_field_embeddings
+      vocab_sizes: ${item_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: item_flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: item_field_embeddings
+      output_key: item_flat
+
+  - id: item_tower
+    skill: mlp_tower
+    params:
+      input_key: item_flat
+      output_key: item_raw
+      input_dim: ${item_input_dim}
+      hidden_dims: ${item_hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: false
+
+  - id: item_normalize
+    skill: normalize_embedding
+    params:
+      input_key: item_raw
+      output_key: item_embedding
+
+  - id: score
+    skill: dot_product_logits
+    params:
+      user_key: user_embedding
+      item_key: item_embedding
+      pos_output_key: logits
+      temperature: ${temperature}
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

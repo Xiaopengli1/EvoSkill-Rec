@@ -1,0 +1,21 @@
+name: dot_product_logits
+category: matching
+description: Dot-product retrieval scoring for user and item embeddings.
+retrieval:
+  summary: Use this for two-tower, sampled-softmax, or sequence retrieval logits.
+  use_when: User/session and item vectors should be scored by inner product.
+  avoid_when: A cross-encoder scoring function is needed.
+  task_types: [matching, sequence]
+  architecture_roles: [retrieval_head, two_tower_score, sampled_item_head]
+  input_modalities: [user_embedding, item_embedding]
+  output_semantics: [pos_logits, neg_logits]
+  objectives: [retrieval_scoring, sequential_matching]
+  model_families: [DSSM, YoutubeDNN, YoutubeSBC, GRU4Rec, MIND, ComirecSA, ComirecDR, SINE, STAMP]
+  aliases: [dot product, two tower logits, retrieval score]
+  query_examples: [DSSM dot product head, sampled item logits]
+composition:
+  requires: [user_embedding, item_embedding]
+  produces: [pos_logits]
+  common_upstream: [mlp_tower, sequence_pooling, multi_interest_extractor]
+  common_downstream: [nce_loss, serving_vector_index]
+  example_genome_fragment: "skill: dot_product_logits\nparams: {user_key: user_embedding, item_key: item_embedding}"

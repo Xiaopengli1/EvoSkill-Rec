@@ -1,0 +1,49 @@
+model_name: multi_domain_m2m_skillified
+task_type: multi_domain
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+  domain_indicator:
+    shape: [batch_size]
+    dtype: int64
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: field_embeddings
+      output_key: flat_embeddings
+
+  - id: domain_embedding
+    skill: field_embedding
+    params:
+      input_key: domain_indicator
+      output_key: domain_embeddings
+      vocab_sizes: ${domain_vocab_sizes}
+      embedding_dim: ${domain_embedding_dim}
+
+  - id: flatten_domain
+    skill: flatten_field_embeddings
+    params:
+      input_key: domain_embeddings
+      output_key: domain_context
+
+  - id: meta_tower
+    skill: m2m_meta_tower
+    params:
+      input_key: flat_embeddings
+      domain_key: domain_context
+      output_key: prediction
+      input_dim: ${input_dim}
+      domain_dim: ${domain_dim}
+      num_experts: ${num_experts}
+      expert_output_size: ${expert_output_size}
+      transformer_dims: ${transformer_dims}

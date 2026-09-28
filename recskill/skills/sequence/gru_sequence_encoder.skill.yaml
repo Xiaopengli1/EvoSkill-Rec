@@ -1,0 +1,21 @@
+name: gru_sequence_encoder
+category: sequence
+description: GRU encoder for item history embeddings.
+retrieval:
+  summary: Use this for GRU4Rec, NARM, or DIEN-style recurrent sequence modeling.
+  use_when: Ordered behavior sequences need recurrent interest evolution.
+  avoid_when: Long-range self-attention is required.
+  task_types: [matching, ranking, sequence]
+  architecture_roles: [gru_encoder, recurrent_interest]
+  input_modalities: [sequence_embeddings]
+  output_semantics: [sequence_output, sequence_summary]
+  objectives: [sequential_matching, click_prediction]
+  model_families: [GRU4Rec, NARM, DIEN]
+  aliases: [gru, recurrent sequence, interest evolution]
+  query_examples: [GRU4Rec encoder, DIEN interest evolution]
+composition:
+  requires: [seq_embeddings]
+  produces: [sequence_output, sequence_summary]
+  common_upstream: [shared_sequence_embedding, sequence_field_embedding]
+  common_downstream: [target_sequence_attention, dot_product_logits]
+  example_genome_fragment: "skill: gru_sequence_encoder\nparams: {embedding_dim: 16, hidden_dim: 16, num_layers: 2, bias: false}"

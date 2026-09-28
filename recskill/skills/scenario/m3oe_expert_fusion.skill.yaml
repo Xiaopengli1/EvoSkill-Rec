@@ -1,0 +1,69 @@
+name: m3oe_expert_fusion
+category: scenario
+description: Apply M3oE STAR-style front-end fusion followed by shared and domain expert mixing.
+inputs:
+  - name: flat_embeddings
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+  - name: domain_id
+    shape: "[batch_size]"
+    dtype: int64
+outputs:
+  - name: prediction
+    shape: "[batch_size]"
+    dtype: float32
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - star_frontend
+  - domain_expert_fusion
+  - mixture_of_experts
+failure_signatures:
+  - input_dim_mismatch
+  - domain_id_out_of_range
+good_for:
+  - M3oE-style models combining STAR domain fusion with shared and domain-specific experts
+bad_for:
+  - models that only need a single domain-specific tower output
+compatible_with:
+  upstream:
+    - field_embedding
+    - flatten_field_embeddings
+    - domain_indicator_adapter
+  downstream:
+    - bce_loss
+source:
+  file: torch_rechub/models/multi_domain/m3oe.py
+  class_or_function: M3oE
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for M3oE-style STAR front-end plus shared/domain expert fusion."
+  use_when:
+    - "The architecture first applies STAR-style domain fusion and then mixes shared experts with domain experts."
+    - "The model uses explicit domain ids and expert gates per domain."
+  avoid_when:
+    - "There is no STAR front-end or domain expert balance term."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [star_frontend, expert_fusion, domain_expert_moe]
+  input_modalities: [flat_embeddings, domain_ids]
+  output_semantics: [prediction]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [M3oE]
+  aliases: [M3oE, multi-domain expert fusion, STAR expert fusion]
+  query_examples:
+    - "M3oE expert fusion"
+    - "STAR front-end with domain experts"
+composition:
+  requires: [flat_embeddings, domain_id]
+  produces: [prediction]
+  common_upstream: [field_embedding, flatten_field_embeddings, domain_indicator_adapter]
+  common_downstream: [bce_loss]
+  example_genome_fragment:
+    skill: m3oe_expert_fusion
+    params:
+      input_key: flat_embeddings
+      domain_key: domain_id
+      output_key: prediction
+      input_dim: "${input_dim}"
+      domain_num: "${domain_num}"
+      fcn_dims: "${fcn_dims}"
+      expert_num: "${expert_num}"

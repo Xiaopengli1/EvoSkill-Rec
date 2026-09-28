@@ -1,0 +1,60 @@
+name: star_domain_fcn
+category: scenario
+description: Compute STAR domain outputs with shared weights multiplied by domain-specific weights.
+inputs:
+  - name: flat_embeddings
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+outputs:
+  - name: domain_outputs
+    shape: "[batch_size, domain_num]"
+    dtype: float32
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - shared_domain_weight_factorization
+  - domain_specific_normalization
+failure_signatures:
+  - input_dim_mismatch
+good_for:
+  - STAR-style multi-domain CTR models with shared and domain-specific FCN factors
+bad_for:
+  - models that need latent domain inference instead of explicit domain ids
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+  downstream:
+    - domain_select
+source:
+  file: torch_rechub/models/multi_domain/star.py
+  class_or_function: Star
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for STAR-style shared/domain-specific factorized FCN outputs."
+  use_when:
+    - "The architecture multiplies shared FCN weights with domain-specific weights."
+  avoid_when:
+    - "Domain outputs are produced by independent towers without shared weight products."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [star_fcn, domain_factorization, domain_tower]
+  input_modalities: [flat_embeddings]
+  output_semantics: [domain_outputs]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [Star]
+  aliases: [STAR, star domain fcn, shared domain factorization]
+  query_examples:
+    - "STAR multi-domain tower"
+    - "shared domain-specific FCN factorization"
+composition:
+  requires: [flat_embeddings]
+  produces: [domain_outputs]
+  common_upstream: [field_embedding, flatten_field_embeddings]
+  common_downstream: [domain_select]
+  example_genome_fragment:
+    skill: star_domain_fcn
+    params:
+      input_key: flat_embeddings
+      output_key: domain_outputs
+      input_dim: "${input_dim}"
+      domain_num: "${domain_num}"
+      fcn_dims: "${fcn_dims}"
+      aux_dims: "${aux_dims}"

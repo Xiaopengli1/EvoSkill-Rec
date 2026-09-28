@@ -1,0 +1,21 @@
+name: afm_attention_pooling
+category: interaction
+description: AFM-style attention pooling over pairwise feature crosses.
+retrieval:
+  summary: Use this when second-order interactions need learned attention weights.
+  use_when: A ranking model follows AFM or attention-weighted FM structure.
+  avoid_when: Interactions should be summed uniformly as in FM.
+  task_types: [ctr, ranking]
+  architecture_roles: [attention_cross, afm_pooling]
+  input_modalities: [field_embeddings]
+  output_semantics: [attention_pooled_crosses]
+  objectives: [click_prediction]
+  model_families: [AFM]
+  aliases: [afm, attentional fm, attention pooling]
+  query_examples: [AFM attention pooling]
+composition:
+  requires: [field_embeddings]
+  produces: [afm_output]
+  common_upstream: [field_embedding]
+  common_downstream: [binary_ctr_head, concat_fusion]
+  example_genome_fragment: "skill: afm_attention_pooling\nparams: {embedding_dim: 16, num_fields: 8}"

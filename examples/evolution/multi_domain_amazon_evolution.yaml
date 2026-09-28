@@ -1,0 +1,125 @@
+experiment_name: multi_domain_evolution_amazon
+output_dir: outputs/evolution/multi_domain_amazon
+
+dataset:
+  name: amazon_5_core_multi_domain
+  type: multi_domain_csv
+  path: examples/multi_domain/data/amazon_5_core/amazon.csv
+  label_col: label
+  domain_col: domain_indicator
+  dense_cols: []
+  include_domain_as_feature: false
+  split_ratio: [0.8, 0.1, 0.1]
+  limit_rows: null
+
+genome:
+  template: star
+  embedding_dim: 16
+  shared_hidden_dims: [128, 64]
+  tower_hidden_dims: [32]
+  expert_dim: 32
+  num_experts: 3
+  ple_shared_experts: 1
+  ple_specific_experts: 2
+  star_fcn_dims: [128, 64, 32]
+  star_aux_dims: [32]
+  dropout: 0.0
+  activation: relu
+
+training:
+  epoch: 1
+  learning_rate: 0.001
+  batch_size: 4096
+  weight_decay: 0.00001
+  device: cpu
+  seed: 2022
+  num_workers: 0
+  earlystop_patience: 3
+  objective_metric: auc
+
+evolution:
+  enabled: true
+  rounds: 25
+  candidate_budget: 8
+  strategy: skill_library
+  code_space_probability: 0.25
+  adaptive_candidate_budget:
+    enabled: true
+    stagnation_patience: 2
+    min_improvement: 0.001
+    base_code_candidates: 2
+    code_step: 1
+    max_code_candidates: 6
+    min_skill_candidates: 2
+    reset_on_improvement: true
+    cooldown_code_step: 1
+  failure_modes:
+    - scenario_transfer_underfitting
+    - domain_specific_tower_underfitting
+  templates:
+    - name: swap_shared_bottom
+      template: shared_bottom
+      operation: replace
+    - name: swap_mmoe
+      template: mmoe
+      operation: replace
+    - name: swap_ple
+      template: ple
+      operation: replace
+    - name: swap_sarnet
+      template: sarnet
+      operation: replace
+    - name: swap_adaptdhm
+      template: adaptdhm
+      operation: replace
+    - name: swap_hamur_small
+      template: hamur_small
+      operation: replace
+    - name: swap_hamur_large
+      template: hamur_large
+      operation: replace
+    - name: swap_m3oe
+      template: m3oe
+      operation: replace
+    - name: swap_ppnet
+      template: ppnet
+      operation: replace
+    - name: swap_m2m
+      template: m2m
+      operation: replace
+    - name: swap_adasparse
+      template: adasparse
+      operation: replace
+    - name: swap_epnet
+      template: epnet
+      operation: replace
+    - name: star_wider
+      template: star
+      operation: specialize
+      star_fcn_dims: [256, 128, 64]
+  keep_top_k: 4
+  survivor_top_k: 4
+  deduplicate_architectures: true
+  deduplicate_against_memory: true
+  code_space:
+    provider: creative_command
+    command:
+    planner_command: python tools/code_space_llm_provider.py --mode planner --task multi_domain
+    synthesizer_command: python tools/code_space_llm_provider.py --mode synthesizer --task multi_domain
+    max_retries: 2
+    proposals_per_round: 2
+    sketches_per_round: 12
+    diversity_lanes: [embedding, dense_processing, interaction, domain_backbone, domain_routing, domain_tower, domain_selection]
+    structural_scopes: [macro]
+    scope_mix_strategy: sequential
+    macro_requires_live_provider: true
+    require_active_provider: true
+    reuse_promoted_generated_skills: true
+    reuse_promoted_code_skills: false
+    allow_fallback_templates: false
+    promotion_policy: survivor
+
+write_metadata_files: true
+write_summary_json: true
+write_evolution_memory: true
+write_code_space_diagnostics: true

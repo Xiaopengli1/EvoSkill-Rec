@@ -1,0 +1,67 @@
+name: full_augru_evolution
+skill_id: full_augru_evolution
+category: sequence
+description: Exact DIEN AUGRU target-conditioned interest evolution.
+inputs:
+- name: interest_sequence
+  shape: '[batch_size, num_fields, seq_len, embedding_dim]'
+- name: target_embeddings
+  shape: '[batch_size, num_fields, embedding_dim]'
+outputs:
+- name: interest_evolving
+  shape: '[batch_size, num_fields, embedding_dim]'
+task_types: &id001
+- ctr
+- ranking
+- sequence
+source:
+  file: torch_rechub/models/ranking/dien.py
+  class_or_function: AUGRU
+  extraction_type: wrapped_exact
+retrieval:
+  summary: Use this for DIEN's attentional update gate evolution rather than a plain
+    GRU approximation.
+  task_types:
+  - ctr
+  - ranking
+  - sequence
+  architecture_roles:
+  - sequence_encoder
+  - interest_evolution
+  - augru
+  input_modalities:
+  - interest_sequence
+  - target_embeddings
+  output_semantics:
+  - interest_evolving
+  model_families:
+  - DIEN
+  aliases:
+  - AUGRU
+  - DIEN evolution
+  - attentional update gate
+  use_when:
+  - Use this for DIEN's attentional update gate evolution rather than a plain GRU
+    approximation.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for DIEN's attentional update gate evolution rather than a plain GRU
+    approximation.
+composition:
+  requires:
+  - interest_sequence
+  - target_embeddings
+  produces:
+  - interest_evolving
+  - interest_evolution_sequence
+  common_upstream:
+  - gru_sequence_encoder
+  - sequence_mask
+  common_downstream:
+  - concat_fusion
+  - mlp_tower
+  example_genome_fragment:
+    skill: full_augru_evolution
+    params: {}

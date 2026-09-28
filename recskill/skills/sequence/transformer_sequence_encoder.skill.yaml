@@ -1,0 +1,21 @@
+name: transformer_sequence_encoder
+category: sequence
+description: Causal Transformer encoder for generative recommendation genomes.
+retrieval:
+  summary: Use this for HLLM or TIGER-style lightweight sequence-token modeling.
+  use_when: Semantic IDs or item IDs should be modeled with causal self-attention.
+  avoid_when: The exact external T5 or LLM backbone is required.
+  task_types: [generative, sequence, matching]
+  architecture_roles: [transformer_encoder, causal_self_attention]
+  input_modalities: [sequence_embeddings, sequence_ids]
+  output_semantics: [sequence_output]
+  objectives: [next_item_prediction, semantic_id_generation]
+  model_families: [HLLM, TIGER]
+  aliases: [transformer, hllm adapter, tiger adapter]
+  query_examples: [causal transformer for semantic IDs]
+composition:
+  requires: [seq_embeddings]
+  produces: [sequence_output]
+  common_upstream: [shared_sequence_embedding]
+  common_downstream: [sequence_lm_head]
+  example_genome_fragment: "skill: transformer_sequence_encoder\nparams: {d_model: 64, n_heads: 2, n_layers: 2}"

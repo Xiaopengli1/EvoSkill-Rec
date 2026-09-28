@@ -1,0 +1,55 @@
+name: semantic_id_export_adapter
+skill_id: semantic_id_export_adapter
+category: generative
+description: Convert residual quantizer code indices to semantic ID tokens.
+inputs:
+- name: code_indices
+  shape: '[batch_size, num_quantizers]'
+outputs:
+- name: semantic_ids
+  shape: list[list[str]]
+task_types: &id001
+- generative
+- matching
+source:
+  file: torch_rechub/models/generative/rqvae.py
+  class_or_function: RQVAEModel.generate_semantic_ids
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this to export TIGER semantic IDs from RQVAE code indices.
+  task_types:
+  - generative
+  - matching
+  architecture_roles:
+  - adapter
+  - semantic_id_export
+  input_modalities:
+  - code_indices
+  output_semantics:
+  - semantic_ids
+  model_families:
+  - RQVAE
+  - TIGER
+  aliases:
+  - semantic id export
+  - TIGER token ids
+  use_when:
+  - Use this to export TIGER semantic IDs from RQVAE code indices.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this to export TIGER semantic IDs from RQVAE code indices.
+composition:
+  requires:
+  - code_indices
+  produces:
+  - semantic_ids
+  - semantic_id_strings
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: semantic_id_export_adapter
+    params: {}

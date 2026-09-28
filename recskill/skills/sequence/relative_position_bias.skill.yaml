@@ -1,0 +1,55 @@
+name: relative_position_bias
+skill_id: relative_position_bias
+category: sequence
+description: HLLM relative position bias.
+inputs:
+- name: seq_len
+  shape: int
+outputs:
+- name: rel_pos_bias
+  shape: '[1, n_heads, seq_len, seq_len]'
+task_types: &id001
+- generative
+- sequence
+- matching
+source:
+  file: torch_rechub/utils/hstu_utils.py
+  class_or_function: RelPosBias
+  extraction_type: wrapped_exact
+retrieval:
+  summary: Use this to add HLLM relative-position bias to causal attention scores.
+  task_types:
+  - generative
+  - sequence
+  - matching
+  architecture_roles:
+  - attention_bias
+  - relative_position
+  output_semantics:
+  - rel_pos_bias
+  model_families:
+  - HLLM
+  aliases:
+  - relative position bias
+  - RelPosBias
+  use_when:
+  - Use this to add HLLM relative-position bias to causal attention scores.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  input_modalities:
+  - seq_len
+  objectives: *id001
+  query_examples:
+  - Use this to add HLLM relative-position bias to causal attention scores.
+composition:
+  requires:
+  - seq_len
+  produces:
+  - rel_pos_bias
+  common_downstream:
+  - hllm_transformer_block
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: relative_position_bias
+    params: {}

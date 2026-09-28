@@ -1,0 +1,21 @@
+name: multi_interest_fusion
+category: matching
+description: Fuse static user context with multiple interest vectors.
+retrieval:
+  summary: Use this after multi-interest extraction to produce final retrieval user embeddings.
+  use_when: User context features should be repeated and combined with each extracted interest vector.
+  avoid_when: The sequence encoder already returns final user embeddings.
+  task_types: [matching, sequence]
+  architecture_roles: [multi_interest_head, user_context_fusion]
+  input_modalities: [user_context, multi_interest_embeddings]
+  output_semantics: [user_embedding]
+  objectives: [retrieval_scoring]
+  model_families: [MIND, ComirecSA, ComirecDR]
+  aliases: [multi-interest projection, user interest fusion]
+  query_examples: [fuse user profile with multiple interests]
+composition:
+  requires: [user_context, multi_interest_embeddings]
+  produces: [user_embedding]
+  common_upstream: [multi_interest_extractor, flatten_field_embeddings]
+  common_downstream: [candidate_dot_logits]
+  example_genome_fragment: "skill: multi_interest_fusion\nparams: {user_dim: 8, embedding_dim: 8, output_dim: 8, interest_num: 4}"

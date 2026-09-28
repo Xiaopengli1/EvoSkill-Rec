@@ -1,0 +1,21 @@
+name: crossnet_mix
+category: interaction
+description: DCNv2 low-rank mixture-of-experts cross network.
+retrieval:
+  summary: Use this for the default DCNv2 low-rank mixture cross path.
+  use_when: A DCNv2-style model should use low-rank cross experts rather than full-rank CrossNetV2.
+  avoid_when: A simple full-rank cross network is sufficient; use crossnet_v2.
+  task_types: [ctr, ranking]
+  architecture_roles: [explicit_cross, dcnv2_cross, low_rank_moe]
+  input_modalities: [flat_embeddings]
+  output_semantics: [cross_representation]
+  objectives: [click_prediction]
+  model_families: [DCNv2]
+  aliases: [crossnet mix, low rank cross, dcnv2 moe]
+  query_examples: [DCNv2 low rank mixture, crossnet mix branch]
+composition:
+  requires: [flat_embeddings]
+  produces: [cross_output]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [concat_fusion, binary_ctr_head, linear_logit]
+  example_genome_fragment: "skill: crossnet_mix\nparams: {input_dim: 64, num_layers: 3, low_rank: 8, num_experts: 4}"

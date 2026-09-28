@@ -1,0 +1,57 @@
+model_name: multi_domain_adasparse_skillified
+task_type: multi_domain
+
+inputs:
+  scenario_features:
+    shape: [batch_size, num_scenario_fields]
+    dtype: int64
+  agnostic_features:
+    shape: [batch_size, num_agnostic_fields]
+    dtype: int64
+
+skills:
+  - id: scenario_embedding
+    skill: field_embedding
+    params:
+      input_key: scenario_features
+      output_key: scenario_embeddings
+      vocab_sizes: ${scenario_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_scenario
+    skill: flatten_field_embeddings
+    params:
+      input_key: scenario_embeddings
+      output_key: scenario_context
+
+  - id: agnostic_embedding
+    skill: field_embedding
+    params:
+      input_key: agnostic_features
+      output_key: agnostic_embeddings
+      vocab_sizes: ${agnostic_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_agnostic
+    skill: flatten_field_embeddings
+    params:
+      input_key: agnostic_embeddings
+      output_key: agnostic_flat
+
+  - id: pruned_tower
+    skill: adasparse_pruned_tower
+    params:
+      scenario_key: scenario_context
+      agnostic_key: agnostic_flat
+      logits_key: logits
+      output_key: prediction
+      scenario_dim: ${scenario_dim}
+      agnostic_dim: ${agnostic_dim}
+      hidden_dims: ${hidden_dims}
+      form: ${form}
+      epsilon: ${epsilon}
+      beta: ${beta}
+      alpha: ${alpha}
+      delta_alpha: ${delta_alpha}
+      activation: relu
+      dropout: 0.0

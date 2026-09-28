@@ -1,0 +1,45 @@
+model_name: sasrec_skillified
+task_type: sequence_matching
+
+inputs:
+  seq_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+  pos_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+  neg_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+
+skills:
+  - id: shared_item_embedding
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [seq_features, pos_features, neg_features]
+      output_keys: [seq_embeddings, pos_embeddings, neg_embeddings]
+      vocab_size: ${vocab_size}
+      embedding_dim: ${embedding_dim}
+      padding_idx: 0
+
+  - id: encoder
+    skill: sasrec_sequence_encoder
+    params:
+      ids_key: seq_features
+      input_key: seq_embeddings
+      output_key: sequence_output
+      embedding_dim: ${embedding_dim}
+      max_len: ${max_len}
+      dropout_rate: 0.0
+      num_blocks: ${num_blocks}
+      num_heads: ${num_heads}
+      padding_idx: 0
+
+  - id: pairwise_logits
+    skill: sasrec_pairwise_logits
+    params:
+      sequence_key: sequence_output
+      pos_key: pos_embeddings
+      neg_key: neg_embeddings
+      pos_output_key: pos_logits
+      neg_output_key: neg_logits

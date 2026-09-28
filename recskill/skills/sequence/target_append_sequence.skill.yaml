@@ -1,0 +1,21 @@
+name: target_append_sequence
+category: sequence
+description: Build a BST-style sequence by appending the target token after history tokens.
+retrieval:
+  summary: Use this before a transformer encoder in BST-style CTR models.
+  use_when: History fields must be fused per timestep and the target item should be encoded as the last sequence token.
+  avoid_when: Target-aware attention pooling without a transformer is desired.
+  task_types: [ctr, ranking, sequence]
+  architecture_roles: [target_sequence_concat, bst_input_adapter]
+  input_modalities: [history_embeddings, target_embeddings]
+  output_semantics: [sequence_embeddings, sequence_ids]
+  objectives: [click_prediction, sequence_modeling]
+  model_families: [BST]
+  aliases: [BST sequence concat, append target, target token]
+  query_examples: [append target to history sequence, BST transformer input]
+composition:
+  requires: [history_embeddings, target_embeddings]
+  produces: [sequence_embeddings, sequence_ids]
+  common_upstream: [sequence_field_embedding, field_embedding]
+  common_downstream: [transformer_sequence_encoder, sequence_pooling]
+  example_genome_fragment: "skill: target_append_sequence\nparams: {num_fields: 1, embedding_dim: 16}"

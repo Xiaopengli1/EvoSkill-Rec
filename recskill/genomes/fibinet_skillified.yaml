@@ -1,0 +1,70 @@
+model_name: fibinet_skillified
+task_type: ctr
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: senet
+    skill: senet_feature_gate
+    params:
+      input_key: field_embeddings
+      output_key: gated_embeddings
+      num_fields: ${num_fields}
+      reduction_ratio: ${reduction_ratio}
+
+  - id: bilinear_raw
+    skill: bilinear_interaction
+    params:
+      input_key: field_embeddings
+      output_key: bilinear_raw
+      embedding_dim: ${embedding_dim}
+      num_fields: ${num_fields}
+      bilinear_type: ${bilinear_type}
+
+  - id: bilinear_gated
+    skill: bilinear_interaction
+    params:
+      input_key: gated_embeddings
+      output_key: bilinear_gated
+      embedding_dim: ${embedding_dim}
+      num_fields: ${num_fields}
+      bilinear_type: ${bilinear_type}
+
+  - id: concat_interactions
+    skill: concat_fusion
+    params:
+      input_keys: [bilinear_raw, bilinear_gated]
+      output_key: fibinet_interactions
+      dim: 1
+
+  - id: flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: fibinet_interactions
+      output_key: fibinet_flat
+
+  - id: mlp
+    skill: mlp_tower
+    params:
+      input_key: fibinet_flat
+      output_key: logits
+      input_dim: ${fibinet_input_dim}
+      hidden_dims: ${hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: true
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

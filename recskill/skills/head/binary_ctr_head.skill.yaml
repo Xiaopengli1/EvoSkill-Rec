@@ -1,0 +1,71 @@
+name: binary_ctr_head
+category: head
+description: Project a representation to a single raw CTR logit.
+inputs:
+  - name: input_key
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+outputs:
+  - name: logits
+    shape: "[batch_size, 1]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+inductive_bias:
+  - linear_logit_projection
+failure_signatures:
+  - input_dim_mismatch
+good_for:
+  - binary CTR prediction
+bad_for:
+  - multiclass item generation
+compatible_with:
+  upstream:
+    - concat_fusion
+    - mlp_tower
+  downstream:
+    - bce_loss
+constraints:
+  input_dim_static: true
+cost:
+  parameters: "input_dim + 1"
+  compute: "O(batch_size * input_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - multitask_ctr_head
+  can_be_augmented_by:
+    - calibration_layer
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: LR
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this to project a dense model representation to one raw binary CTR logit."
+  use_when:
+    - "The model should produce a single binary classification score."
+    - "A fused or tower representation is ready for final linear projection."
+  avoid_when:
+    - "You need multiple task outputs; use task_tower."
+    - "You need pairwise sequence logits; use sasrec_pairwise_logits."
+  task_types: [ctr, ranking]
+  architecture_roles: [head, binary_logit, prediction_head]
+  input_modalities: [dense_representation, fused_representation]
+  output_semantics: [logits]
+  objectives: [click_prediction, binary_classification]
+  model_families: [DeepFM, DCN, DIN, WideDeep]
+  aliases: [CTR head, binary head, logit projection, linear head]
+  query_examples:
+    - "final CTR logit head"
+    - "binary prediction head for fused representation"
+composition:
+  requires: [input_key]
+  produces: [logits]
+  common_upstream: [concat_fusion, mlp_tower]
+  common_downstream: [sigmoid_prediction, bce_loss]
+  example_genome_fragment:
+    skill: binary_ctr_head
+    params:
+      input_key: fused_representation
+      input_dim: "${fusion_dim}"
+      output_key: logits

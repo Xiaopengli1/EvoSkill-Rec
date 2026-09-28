@@ -1,0 +1,21 @@
+name: cen_feature_gate
+category: interaction
+description: Compose-excitation gating for FAT-DeepFFM pairwise interactions.
+retrieval:
+  summary: Use this to rescale FFM pairwise interaction embeddings with CEN field attention.
+  use_when: FAT-DeepFFM should emphasize important second-order field crosses.
+  avoid_when: Plain DeepFFM interactions should flow directly to the MLP.
+  task_types: [ctr, ranking]
+  architecture_roles: [field_cross_attention, cen_gate]
+  input_modalities: [pairwise_interactions]
+  output_semantics: [flat_interaction_representation]
+  objectives: [click_prediction]
+  model_families: [FatDeepFFM]
+  aliases: [CEN, compose excitation, FAT-DeepFFM gate]
+  query_examples: [CEN field attention, gate FFM interactions]
+composition:
+  requires: [ffm_interactions]
+  produces: [gated_ffm_flat]
+  common_upstream: [ffm_interaction]
+  common_downstream: [mlp_tower]
+  example_genome_fragment: "skill: cen_feature_gate\nparams: {embedding_dim: 8, num_field_crosses: 6, reduction_ratio: 2}"

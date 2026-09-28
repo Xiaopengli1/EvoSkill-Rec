@@ -1,0 +1,58 @@
+name: time_bucket_embedding
+skill_id: time_bucket_embedding
+category: sequence
+description: HSTU/HLLM sqrt-log time bucket embedding.
+inputs:
+- name: time_diffs
+  shape: '[batch_size, seq_len]'
+outputs:
+- name: time_embeddings
+  shape: '[batch_size, seq_len, d_model]'
+task_types: &id001
+- generative
+- sequence
+source:
+  file: torch_rechub/models/generative/hstu.py
+  class_or_function: HSTUModel._time_diff_to_bucket / HLLMModel._time_diff_to_bucket
+  extraction_type: reimplemented_exact
+retrieval:
+  summary: Use this for generative sequential recommenders with bucketed temporal
+    signals.
+  task_types:
+  - generative
+  - sequence
+  architecture_roles:
+  - time_embedding
+  - temporal_adapter
+  input_modalities:
+  - time_diffs
+  output_semantics:
+  - time_embeddings
+  - time_buckets
+  model_families:
+  - HSTU
+  - HLLM
+  aliases:
+  - time buckets
+  - temporal embedding
+  use_when:
+  - Use this for generative sequential recommenders with bucketed temporal signals.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for generative sequential recommenders with bucketed temporal signals.
+composition:
+  requires:
+  - time_diffs
+  produces:
+  - time_embeddings
+  - time_buckets
+  common_downstream:
+  - hstu_sequence_encoder
+  - hllm_transformer_block
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: time_bucket_embedding
+    params: {}

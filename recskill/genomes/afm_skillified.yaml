@@ -1,0 +1,52 @@
+model_name: afm_skillified
+task_type: ctr
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+
+  - id: linear
+    skill: linear_logit
+    params:
+      input_key: flat_embeddings
+      output_key: linear_logit
+      input_dim: ${flat_input_dim}
+
+  - id: attention_pool
+    skill: afm_attention_pooling
+    params:
+      input_key: field_embeddings
+      output_key: afm_output
+      embedding_dim: ${embedding_dim}
+      num_fields: ${num_fields}
+      attention_dim: ${attention_dim}
+
+  - id: attention_logit
+    skill: binary_ctr_head
+    params:
+      input_key: afm_output
+      input_dim: ${embedding_dim}
+      output_key: afm_logit
+
+  - id: fusion
+    skill: additive_fusion
+    params:
+      input_keys: [linear_logit, afm_logit]
+      output_key: logits
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

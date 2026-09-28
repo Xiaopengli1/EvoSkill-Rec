@@ -1,0 +1,35 @@
+model_name: stamp_skillified
+task_type: matching
+
+inputs:
+  history_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+  item_features:
+    shape: [batch_size, 1]
+    dtype: int64
+
+skills:
+  - id: shared_item_embedding
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [history_features, item_features]
+      output_keys: [history_embeddings, item_embeddings]
+      vocab_size: ${item_vocab_size}
+      embedding_dim: ${embedding_dim}
+
+  - id: session_encoder
+    skill: stamp_session_encoder
+    params:
+      input_key: history_embeddings
+      ids_key: history_features
+      output_key: user_embedding
+      embedding_dim: ${embedding_dim}
+
+  - id: score
+    skill: candidate_dot_logits
+    params:
+      user_key: user_embedding
+      candidate_key: item_embeddings
+      output_key: scores
+      squeeze_single: true

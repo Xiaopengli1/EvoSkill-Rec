@@ -1,0 +1,104 @@
+model_name: bst_skillified
+task_type: ctr
+
+inputs:
+  context_features:
+    shape: [batch_size, num_context_fields]
+    dtype: int64
+  history_features:
+    shape: [batch_size, num_history_fields, seq_len]
+    dtype: int64
+  target_features:
+    shape: [batch_size, num_history_fields]
+    dtype: int64
+
+skills:
+  - id: context_embedding
+    skill: field_embedding
+    params:
+      input_key: context_features
+      output_key: context_embeddings
+      vocab_sizes: ${context_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: history_embedding
+    skill: sequence_field_embedding
+    params:
+      input_key: history_features
+      output_key: history_embeddings
+      vocab_sizes: ${history_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: target_embedding
+    skill: field_embedding
+    params:
+      input_key: target_features
+      output_key: target_embeddings
+      vocab_sizes: ${target_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: append_target
+    skill: target_append_sequence
+    params:
+      history_key: history_embeddings
+      target_key: target_embeddings
+      ids_key: history_features
+      output_key: bst_sequence
+      output_ids_key: bst_sequence_ids
+      num_fields: ${num_history_fields}
+      embedding_dim: ${embedding_dim}
+
+  - id: transformer
+    skill: transformer_sequence_encoder
+    params:
+      input_key: bst_sequence
+      ids_key: bst_sequence_ids
+      output_key: bst_sequence_output
+      d_model: ${sequence_dim}
+      n_heads: ${n_heads}
+      n_layers: ${n_layers}
+      dropout: 0.0
+      max_seq_len: ${max_seq_len}
+
+  - id: target_position
+    skill: sequence_pooling
+    params:
+      input_key: bst_sequence_output
+      ids_key: bst_sequence_ids
+      output_key: bst_interest
+      mode: last
+
+  - id: flatten_target
+    skill: flatten_field_embeddings
+    params:
+      input_key: target_embeddings
+      output_key: target_flat
+
+  - id: flatten_context
+    skill: flatten_field_embeddings
+    params:
+      input_key: context_embeddings
+      output_key: context_flat
+
+  - id: fusion
+    skill: concat_fusion
+    params:
+      input_keys: [bst_interest, target_flat, context_flat]
+      output_key: bst_mlp_input
+
+  - id: mlp
+    skill: mlp_tower
+    params:
+      input_key: bst_mlp_input
+      output_key: logits
+      input_dim: ${bst_input_dim}
+      hidden_dims: ${hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: true
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

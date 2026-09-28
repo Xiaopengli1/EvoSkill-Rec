@@ -1,0 +1,77 @@
+name: sasrec_sequence_encoder
+category: sequence
+description: Encode an item history sequence with SASRec causal self-attention.
+inputs:
+  - name: seq_features
+    shape: "[batch_size, seq_len]"
+    dtype: int64
+  - name: seq_embeddings
+    shape: "[batch_size, seq_len, embedding_dim]"
+    dtype: float32
+outputs:
+  - name: sequence_output
+    shape: "[batch_size, seq_len, embedding_dim]"
+    dtype: float32
+task_types:
+  - matching
+  - sequence
+inductive_bias:
+  - causal_self_attention
+  - position_encoding
+failure_signatures:
+  - seq_len_exceeds_max_len
+  - embedding_dim_mismatch
+good_for:
+  - sequential recommendation encoders
+bad_for:
+  - unordered tabular CTR features
+compatible_with:
+  upstream:
+    - shared_sequence_embedding
+  downstream:
+    - sasrec_pairwise_logits
+constraints:
+  seq_len_lte_max_len: true
+cost:
+  parameters: "attention_and_feedforward_stack"
+  compute: "O(batch_size * num_blocks * seq_len^2 * embedding_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - transformer_sequence_encoder
+    - hstu_sequence_encoder
+  can_be_augmented_by:
+    - relative_position_bias
+source:
+  file: torch_rechub/models/matching/sasrec.py
+  class_or_function: SASRec.seq_forward
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for causal self-attention sequence encoding in next-item or pairwise sequential recommendation."
+  use_when:
+    - "A history item sequence should be encoded with SASRec-style autoregressive attention."
+    - "The output must preserve one representation per sequence position."
+  avoid_when:
+    - "The problem is target-conditioned CTR over a fixed target; use din_target_attention."
+    - "The input has no temporal order."
+  task_types: [matching, sequence]
+  architecture_roles: [sequence, transformer_encoder, causal_attention]
+  input_modalities: [item_sequence_embeddings, sequence_ids]
+  output_semantics: [sequence_output, per_position_user_state]
+  objectives: [next_item_prediction, sequential_matching]
+  model_families: [SASRec, BST]
+  aliases: [SASRec encoder, causal transformer, sequence encoder, self attention recommender]
+  query_examples:
+    - "causal self attention for sequential recommendation"
+    - "SASRec sequence encoder"
+composition:
+  requires: [seq_features, seq_embeddings]
+  produces: [sequence_output]
+  common_upstream: [shared_sequence_embedding]
+  common_downstream: [sasrec_pairwise_logits, last_valid_pooling]
+  example_genome_fragment:
+    skill: sasrec_sequence_encoder
+    params:
+      ids_key: seq_features
+      input_key: seq_embeddings
+      embedding_dim: "${embedding_dim}"
+      max_len: "${max_len}"

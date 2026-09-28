@@ -1,0 +1,58 @@
+name: field_aware_embedding_adapter
+skill_id: field_aware_embedding_adapter
+category: embedding
+description: Build FFM-style field-aware embedding tensors.
+inputs:
+- name: field_ids
+  shape: '[batch_size, num_fields]'
+outputs:
+- name: field_aware_embeddings
+  shape: '[batch_size, num_fields, num_fields, embedding_dim]'
+task_types: &id001
+- ctr
+- ranking
+source:
+  file: torch_rechub/models/ranking/deepffm.py
+  class_or_function: field-aware FFM embedding path
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this before FFM interaction when each source field needs target-field-specific
+    embeddings.
+  task_types:
+  - ctr
+  - ranking
+  architecture_roles:
+  - embedding
+  - field_aware_embedding
+  input_modalities:
+  - field_ids
+  output_semantics:
+  - field_aware_embeddings
+  model_families:
+  - DeepFFM
+  - FatDeepFFM
+  aliases:
+  - field aware embedding
+  - FFM embedding adapter
+  use_when:
+  - Use this before FFM interaction when each source field needs target-field-specific
+    embeddings.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this before FFM interaction when each source field needs target-field-specific
+    embeddings.
+composition:
+  requires:
+  - field_ids
+  produces:
+  - field_aware_embeddings
+  common_downstream:
+  - ffm_interaction
+  - cen_feature_gate
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: field_aware_embedding_adapter
+    params: {}

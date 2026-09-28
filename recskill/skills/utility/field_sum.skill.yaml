@@ -1,0 +1,21 @@
+name: field_sum
+category: utility
+description: Sum all non-batch tensor dimensions into a scalar branch output.
+retrieval:
+  summary: Use this for first-order embedding-sum branches in CTR models.
+  use_when: A branch should reduce field embeddings or interaction tensors to one score per example.
+  avoid_when: The branch needs learned feature weighting; use linear_logit instead.
+  task_types: [ctr, ranking]
+  architecture_roles: [first_order_sum, logit_reduction]
+  input_modalities: [field_embeddings, interaction_embeddings]
+  output_semantics: [logits]
+  objectives: [click_prediction]
+  model_families: [DeepFFM, FatDeepFFM]
+  aliases: [field sum, embedding sum, first order sum]
+  query_examples: [sum linear embeddings, first-order FFM branch]
+composition:
+  requires: [input_key]
+  produces: [field_sum]
+  common_upstream: [field_embedding, ffm_interaction]
+  common_downstream: [additive_fusion, sigmoid_prediction]
+  example_genome_fragment: "skill: field_sum\nparams: {input_key: linear_embeddings, output_key: linear_logit}"

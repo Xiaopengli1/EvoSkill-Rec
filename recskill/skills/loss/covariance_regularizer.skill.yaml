@@ -1,0 +1,38 @@
+name: covariance_regularizer
+skill_id: covariance_regularizer
+category: loss
+description: SINE concept-embedding covariance decorrelation regularizer.
+inputs:
+  - name: concept_embeddings
+    shape: "[num_concepts, embedding_dim]"
+outputs:
+  - name: covariance_regularizer
+    shape: "[]"
+task_types: [matching, sequence]
+source:
+  file: torch_rechub/models/matching/sine.py
+  class_or_function: concept_embedding covariance regularizer
+  extraction_type: reimplemented_exact
+retrieval:
+  summary: Use this to penalize off-diagonal covariance among SINE concept embeddings.
+  use_when:
+    - SINE-style conceptual prototypes should be decorrelated.
+  avoid_when:
+    - Concept embeddings are not part of the model.
+  task_types: [matching, sequence]
+  architecture_roles: [loss, regularizer, covariance]
+  input_modalities: [concept_embeddings]
+  output_semantics: [covariance_regularizer]
+  objectives: [concept_decorrelation, sequential_matching]
+  model_families: [SINE]
+  aliases: [covariance regularizer, concept decorrelation]
+  query_examples: [SINE covariance regularizer]
+composition:
+  requires: [concept_embeddings]
+  produces: [covariance_regularizer]
+  common_upstream: [sine_interest_encoder]
+  common_downstream: [loss]
+  example_genome_fragment:
+    skill: covariance_regularizer
+    params:
+      input_key: concept_embeddings

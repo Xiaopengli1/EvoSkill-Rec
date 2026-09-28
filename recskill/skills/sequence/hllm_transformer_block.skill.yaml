@@ -1,0 +1,57 @@
+name: hllm_transformer_block
+skill_id: hllm_transformer_block
+category: sequence
+description: Exact HLLM Transformer block stack.
+inputs:
+- name: sequence_embeddings
+  shape: '[batch_size, seq_len, d_model]'
+outputs:
+- name: sequence_output
+  shape: '[batch_size, seq_len, d_model]'
+task_types: &id001
+- generative
+- sequence
+- matching
+source:
+  file: torch_rechub/models/generative/hllm.py
+  class_or_function: HLLMTransformerBlock
+  extraction_type: wrapped_exact
+retrieval:
+  summary: Use this for HLLM's user-LLM causal block, not a generic Transformer adapter.
+  task_types:
+  - generative
+  - sequence
+  - matching
+  architecture_roles:
+  - sequence_encoder
+  - hllm
+  - transformer
+  input_modalities:
+  - sequence_embeddings
+  output_semantics:
+  - sequence_output
+  model_families:
+  - HLLM
+  aliases:
+  - HLLM block
+  - user LLM block
+  use_when:
+  - Use this for HLLM's user-LLM causal block, not a generic Transformer adapter.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for HLLM's user-LLM causal block, not a generic Transformer adapter.
+composition:
+  requires:
+  - sequence_embeddings
+  produces:
+  - sequence_output
+  common_upstream:
+  - precomputed_item_embedding_adapter
+  - relative_position_bias
+  common_downstream:
+  - normalized_item_dot_head
+  example_genome_fragment:
+    skill: hllm_transformer_block
+    params: {}

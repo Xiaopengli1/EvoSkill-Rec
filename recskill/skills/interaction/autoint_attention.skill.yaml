@@ -1,0 +1,21 @@
+name: autoint_attention
+category: interaction
+description: AutoInt multi-head self-attention feature interaction layers.
+retrieval:
+  summary: Use this for self-attention interactions over feature fields.
+  use_when: A ranking model should learn high-order feature interactions with attention.
+  avoid_when: Sequence-time attention rather than field attention is needed.
+  task_types: [ctr, ranking]
+  architecture_roles: [field_self_attention, autoint_interaction]
+  input_modalities: [field_embeddings]
+  output_semantics: [attention_embeddings]
+  objectives: [click_prediction]
+  model_families: [AutoInt]
+  aliases: [autoint, interacting layer, field attention]
+  query_examples: [AutoInt feature self attention]
+composition:
+  requires: [field_embeddings]
+  produces: [attention_embeddings]
+  common_upstream: [field_embedding]
+  common_downstream: [flatten_field_embeddings, mlp_tower]
+  example_genome_fragment: "skill: autoint_attention\nparams: {embedding_dim: 16, num_layers: 3, num_heads: 2}"

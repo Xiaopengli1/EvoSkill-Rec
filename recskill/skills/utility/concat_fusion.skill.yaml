@@ -1,0 +1,73 @@
+name: concat_fusion
+category: utility
+description: Concatenate tensors from multiple context keys along the last dimension.
+inputs:
+  - name: input_keys
+    shape: "list[[batch_size, dim_i]]"
+    dtype: float32
+outputs:
+  - name: fused_representation
+    shape: "[batch_size, sum(dim_i)]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+  - multitask
+inductive_bias:
+  - late_feature_fusion
+failure_signatures:
+  - missing_input_key
+  - batch_size_mismatch
+good_for:
+  - combining parallel model branches
+bad_for:
+  - weighted branch calibration without a downstream layer
+compatible_with:
+  upstream:
+    - fm_interaction
+    - mlp_tower
+    - crossnet_v1
+  downstream:
+    - binary_ctr_head
+constraints:
+  same_batch_size: true
+cost:
+  parameters: 0
+  compute: "O(total_input_elements)"
+mutation_roles:
+  can_be_replaced_by:
+    - additive_fusion
+    - gated_fusion
+  can_be_augmented_by:
+    - branch_normalization
+source:
+  file: torch_rechub/models/ranking/deepfm.py
+  class_or_function: DeepFM.forward branch merge concept
+  extraction_type: extracted
+retrieval:
+  summary: "Use this to combine multiple branch representations before a head or another tower."
+  use_when:
+    - "A model has parallel branches such as FM plus deep tower or cross plus deep tower."
+    - "Tensors have compatible batch dimensions and should be concatenated on the last axis."
+  avoid_when:
+    - "Branches should be weighted, gated, summed, or calibrated instead of concatenated."
+  task_types: [ctr, ranking, matching, multitask]
+  architecture_roles: [utility, fusion, branch_merge]
+  input_modalities: [dense_representation, logits, branch_outputs]
+  output_semantics: [fused_representation]
+  objectives: [late_fusion, branch_combination]
+  model_families: [DeepFM, DCN, DIN, WideDeep, EDCN]
+  aliases: [concatenate branches, late fusion, feature fusion, branch fusion]
+  query_examples:
+    - "combine cross and deep branch"
+    - "concatenate FM output with MLP output"
+composition:
+  requires: [input_keys]
+  produces: [fused_representation]
+  common_upstream: [fm_interaction, mlp_tower, crossnet_v1]
+  common_downstream: [binary_ctr_head, mlp_tower]
+  example_genome_fragment:
+    skill: concat_fusion
+    params:
+      input_keys: [cross_output, deep_output]
+      output_key: fused_representation

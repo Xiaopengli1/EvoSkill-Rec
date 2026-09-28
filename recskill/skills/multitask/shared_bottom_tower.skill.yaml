@@ -1,0 +1,21 @@
+name: shared_bottom_tower
+category: multitask
+description: Shared-bottom MLP tower for multi-task learning.
+retrieval:
+  summary: Use this when tasks share one common bottom representation.
+  use_when: A multitask model uses hard parameter sharing before task towers.
+  avoid_when: Task-specific experts and gates are required.
+  task_types: [multitask]
+  architecture_roles: [shared_bottom, hard_sharing]
+  input_modalities: [dense_representation]
+  output_semantics: [shared_representation]
+  objectives: [multitask_prediction]
+  model_families: [SharedBottom, AITM, ESMM]
+  aliases: [shared bottom, bottom tower, hard sharing]
+  query_examples: [SharedBottom tower]
+composition:
+  requires: [shared_input]
+  produces: [shared_representation]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [task_tower, aitm_transfer]
+  example_genome_fragment: "skill: shared_bottom_tower\nparams: {input_dim: 64, hidden_dims: [32]}"

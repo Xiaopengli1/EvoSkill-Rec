@@ -1,0 +1,21 @@
+name: candidate_dot_logits
+category: matching
+description: Dot-product scores for positive and sampled negative candidate items.
+retrieval:
+  summary: Use this for list-wise sampled matching scores against item candidates.
+  use_when: A user embedding should score one positive plus several negative item embeddings.
+  avoid_when: In-batch sampling with bias correction is needed; use inbatch_sampled_logits.
+  task_types: [matching, sequence]
+  architecture_roles: [candidate_scoring, sampled_softmax_head, multi_interest_selection]
+  input_modalities: [user_embedding, item_candidates]
+  output_semantics: [matching_logits]
+  objectives: [retrieval_scoring, sampled_softmax]
+  model_families: [YoutubeDNN, GRU4Rec, MIND, ComirecSA, ComirecDR, SINE, NARM, STAMP]
+  aliases: [candidate dot product, sampled item logits, multi-interest scoring]
+  query_examples: [score positive and negative item candidates, choose best interest for item]
+composition:
+  requires: [user_embedding, candidate_embeddings]
+  produces: [scores]
+  common_upstream: [normalize_embedding, multi_interest_fusion, shared_sequence_embedding]
+  common_downstream: [matching_loss, sampled_softmax]
+  example_genome_fragment: "skill: candidate_dot_logits\nparams: {user_key: user_embedding, candidate_key: item_candidates, output_key: scores}"

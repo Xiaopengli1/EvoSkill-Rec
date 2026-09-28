@@ -1,0 +1,60 @@
+name: precomputed_item_embedding_adapter
+skill_id: precomputed_item_embedding_adapter
+category: generative
+description: HLLM frozen precomputed item embedding adapter.
+inputs:
+- name: seq_tokens
+  shape: '[batch_size, seq_len]'
+outputs:
+- name: sequence_embeddings
+  shape: '[batch_size, seq_len, d_model]'
+- name: item_embeddings
+  shape: '[vocab_size, d_model]'
+task_types: &id001
+- generative
+- matching
+- sequence
+source:
+  file: torch_rechub/models/generative/hllm.py
+  class_or_function: HLLMModel item_embeddings
+  extraction_type: reimplemented_exact
+retrieval:
+  summary: Use this for HLLM's frozen item LLM embedding table.
+  task_types:
+  - generative
+  - matching
+  - sequence
+  architecture_roles:
+  - embedding
+  - precomputed_item_embedding
+  input_modalities:
+  - seq_tokens
+  output_semantics:
+  - sequence_embeddings
+  - item_embeddings
+  model_families:
+  - HLLM
+  aliases:
+  - precomputed item embeddings
+  - HLLM item LLM
+  use_when:
+  - Use this for HLLM's frozen item LLM embedding table.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for HLLM's frozen item LLM embedding table.
+composition:
+  requires:
+  - seq_tokens
+  produces:
+  - sequence_embeddings
+  - item_embeddings
+  common_downstream:
+  - hllm_transformer_block
+  - normalized_item_dot_head
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: precomputed_item_embedding_adapter
+    params: {}

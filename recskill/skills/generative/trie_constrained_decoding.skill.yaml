@@ -1,0 +1,51 @@
+name: trie_constrained_decoding
+skill_id: trie_constrained_decoding
+category: generative
+description: Prefix-trie constrained decoding for TIGER semantic IDs.
+inputs:
+- name: prefix_ids
+  shape: '[prefix_len]'
+outputs:
+- name: allowed_token_ids
+  shape: '[num_allowed]'
+task_types: &id001
+- generative
+source:
+  file: torch_rechub/models/generative/tiger.py
+  class_or_function: semantic-id constrained decoding adapter
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this to restrict TIGER generation to valid semantic ID token paths.
+  task_types:
+  - generative
+  architecture_roles:
+  - decoding
+  - constraint
+  input_modalities:
+  - prefix_ids
+  output_semantics:
+  - allowed_token_ids
+  model_families:
+  - TIGER
+  aliases:
+  - trie constrained decoding
+  - prefix allowed tokens
+  use_when:
+  - Use this to restrict TIGER generation to valid semantic ID token paths.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this to restrict TIGER generation to valid semantic ID token paths.
+composition:
+  requires:
+  - prefix_ids
+  produces:
+  - allowed_token_ids
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: trie_constrained_decoding
+    params: {}

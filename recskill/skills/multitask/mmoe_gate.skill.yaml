@@ -1,0 +1,73 @@
+name: mmoe_gate
+category: multitask
+description: Mix shared expert MLP outputs with one softmax gate per task.
+inputs:
+  - name: shared_input
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+outputs:
+  - name: task_representations
+    shape: "[batch_size, n_task, expert_dim]"
+    dtype: float32
+task_types:
+  - multitask
+inductive_bias:
+  - shared_experts
+  - task_specific_gates
+failure_signatures:
+  - input_dim_mismatch
+  - n_task_mismatch
+good_for:
+  - related multitask recommendation objectives
+bad_for:
+  - unrelated tasks with no shared signal
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+  downstream:
+    - task_tower
+constraints:
+  expert_hidden_dims_not_empty: true
+cost:
+  parameters: "n_expert * expert_mlp + n_task * gate_mlp"
+  compute: "O(batch_size * (expert_mlp + gate_mlp))"
+mutation_roles:
+  can_be_replaced_by:
+    - ple_gate
+    - shared_bottom
+  can_be_augmented_by:
+    - expert_dropout
+source:
+  file: torch_rechub/models/multi_task/mmoe.py
+  class_or_function: MMOE experts and gates
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for related multitask models that need shared experts mixed by task-specific gates."
+  use_when:
+    - "Several prediction tasks share input features but need task-specific expert weighting."
+    - "You want MMoE-style expert mixtures before task towers."
+  avoid_when:
+    - "Tasks should share one bottom representation without gates; use shared_bottom-style skills."
+    - "Each task is unrelated and should have fully separate models."
+  task_types: [multitask]
+  architecture_roles: [multitask, expert_mixture, task_gate]
+  input_modalities: [flat_embeddings, dense_representation]
+  output_semantics: [task_representations]
+  objectives: [multitask_prediction, task_relationship_modeling]
+  model_families: [MMoE, PLE]
+  aliases: [MMoE gate, mixture of experts, multi-gate experts, task-specific gates]
+  query_examples:
+    - "multitask model with shared experts and gates"
+    - "MMoE expert mixture for CTR CVR"
+composition:
+  requires: [shared_input]
+  produces: [task_representations]
+  common_upstream: [flatten_field_embeddings, mlp_tower]
+  common_downstream: [task_tower]
+  example_genome_fragment:
+    skill: mmoe_gate
+    params:
+      input_key: shared_input
+      input_dim: "${input_dim}"
+      n_expert: 3
+      n_task: "${n_task}"

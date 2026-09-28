@@ -1,0 +1,38 @@
+model_name: hllm_skillified
+task_type: generative
+
+inputs:
+  seq_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+
+skills:
+  - id: item_embedding
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [seq_features]
+      output_keys: [seq_embeddings]
+      vocab_size: ${vocab_size}
+      embedding_dim: ${embedding_dim}
+      padding_idx: 0
+
+  - id: user_transformer
+    skill: transformer_sequence_encoder
+    params:
+      input_key: seq_embeddings
+      ids_key: seq_features
+      output_key: sequence_output
+      d_model: ${embedding_dim}
+      n_heads: ${n_heads}
+      n_layers: ${n_layers}
+      dropout: ${dropout}
+      max_seq_len: ${max_seq_len}
+
+  - id: lm_head
+    skill: sequence_lm_head
+    params:
+      input_key: sequence_output
+      output_key: logits
+      hidden_dim: ${embedding_dim}
+      vocab_size: ${vocab_size}
+      mode: all

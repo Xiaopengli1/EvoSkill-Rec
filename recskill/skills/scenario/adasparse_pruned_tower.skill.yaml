@@ -1,0 +1,64 @@
+name: adasparse_pruned_tower
+category: scenario
+description: Apply scenario-conditioned AdaSparse pruning before and between MLP layers.
+inputs:
+  - name: scenario_context
+    shape: "[batch_size, scenario_dim]"
+    dtype: float32
+  - name: agnostic_features
+    shape: "[batch_size, agnostic_dim]"
+    dtype: float32
+outputs:
+  - name: logits
+    shape: "[batch_size, 1]"
+    dtype: float32
+  - name: prediction
+    shape: "[batch_size]"
+    dtype: float32
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - adaptive_sparse_feature_pruning
+  - scenario_conditioning
+failure_signatures:
+  - scenario_dim_mismatch
+  - agnostic_dim_mismatch
+good_for:
+  - AdaSparse-style scenario-adaptive pruning in multi-domain CTR
+bad_for:
+  - models that require dense unpruned features at every layer
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+  downstream:
+    - bce_loss
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: Pruner
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for AdaSparse-style adaptive sparse structures conditioned on scenario features."
+  use_when:
+    - "Scenario features should prune agnostic embeddings before and within an MLP tower."
+  avoid_when:
+    - "The model uses soft feature gates rather than sparse pruning masks."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [scenario_pruning, adaptive_sparse_tower, adasparse]
+  input_modalities: [scenario_embeddings, feature_embeddings]
+  output_semantics: [logits, prediction]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [AdaSparse]
+  aliases: [AdaSparse, Pruner, scenario pruning, adaptive sparse tower]
+  query_examples:
+    - "AdaSparse pruned tower"
+    - "scenario conditioned pruning for CTR"
+composition:
+  requires: [scenario_context, agnostic_features]
+  produces: [logits, prediction]
+  common_upstream: [field_embedding, flatten_field_embeddings]
+  common_downstream: [bce_loss]
+  example_genome_fragment:
+    skill: adasparse_pruned_tower
+    params:
+      scenario_dim: "${scenario_dim}"
+      agnostic_dim: "${agnostic_dim}"
+      hidden_dims: "${hidden_dims}"

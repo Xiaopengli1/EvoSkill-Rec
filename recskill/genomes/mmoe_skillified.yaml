@@ -1,0 +1,43 @@
+model_name: mmoe_skillified
+task_type: multitask
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: field_embeddings
+      output_key: shared_input
+
+  - id: mmoe_gate
+    skill: mmoe_gate
+    params:
+      input_key: shared_input
+      output_key: task_representations
+      input_dim: ${input_dim}
+      n_expert: ${n_expert}
+      n_task: ${n_task}
+      expert_hidden_dims: ${expert_hidden_dims}
+      activation: relu
+      dropout: 0.0
+
+  - id: task_tower
+    skill: task_tower
+    params:
+      input_key: task_representations
+      output_key: task_outputs
+      input_dim: ${expert_output_dim}
+      task_types: ${task_types}
+      tower_hidden_dims: ${tower_hidden_dims}
+      activation: relu
+      dropout: 0.0

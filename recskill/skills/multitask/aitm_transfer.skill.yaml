@@ -1,0 +1,21 @@
+name: aitm_transfer
+category: multitask
+description: Ordered transfer between task representations.
+retrieval:
+  summary: Use this for AITM-style information transfer across ordered tasks.
+  use_when: Later tasks should consume information from earlier task towers.
+  avoid_when: Tasks are unordered or independent.
+  task_types: [multitask]
+  architecture_roles: [aitm_transfer, ordered_task_attention]
+  input_modalities: [task_representations]
+  output_semantics: [task_representations]
+  objectives: [multitask_prediction]
+  model_families: [AITM]
+  aliases: [aitm, adaptive transfer, task transfer]
+  query_examples: [AITM transfer layer]
+composition:
+  requires: [task_representations]
+  produces: [task_representations]
+  common_upstream: [mmoe_gate, ple_gate]
+  common_downstream: [task_tower]
+  example_genome_fragment: "skill: aitm_transfer\nparams: {input_dim: 32, n_task: 2}"

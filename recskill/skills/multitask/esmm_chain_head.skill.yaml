@@ -1,0 +1,21 @@
+name: esmm_chain_head
+category: multitask
+description: Chain CTR and CVR outputs into CTCVR for ESMM.
+retrieval:
+  summary: Use this to produce ESMM CTR, CVR, and CTCVR task outputs.
+  use_when: Conversion prediction follows the entire-space chain rule.
+  avoid_when: Tasks are independent and should not be multiplied.
+  task_types: [multitask]
+  architecture_roles: [chain_head, esmm_head]
+  input_modalities: [task_probabilities]
+  output_semantics: [ctr, cvr, ctcvr]
+  objectives: [conversion_prediction, multitask_prediction]
+  model_families: [ESMM]
+  aliases: [esmm, ctcvr, chain rule]
+  query_examples: [ESMM ctcvr head]
+composition:
+  requires: [ctr_output, cvr_output]
+  produces: [task_outputs]
+  common_upstream: [task_tower, mlp_tower]
+  common_downstream: [multitask_loss, metrics]
+  example_genome_fragment: "skill: esmm_chain_head\nparams: {ctr_key: ctr_output, cvr_key: cvr_output}"

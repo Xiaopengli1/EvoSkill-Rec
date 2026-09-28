@@ -1,0 +1,21 @@
+name: sequence_lm_head
+category: head
+description: Project sequence hidden states to item or semantic-token vocabulary logits.
+retrieval:
+  summary: Use this after a sequence encoder for next-item or token generation.
+  use_when: Hidden states must be scored over an item or semantic-token vocabulary.
+  avoid_when: The task is binary CTR classification.
+  task_types: [generative, sequence, matching]
+  architecture_roles: [generative_head, next_item_head, vocabulary_projection]
+  input_modalities: [sequence_hidden_states]
+  output_semantics: [vocabulary_logits]
+  objectives: [next_item_prediction, semantic_id_generation]
+  model_families: [HSTU, HLLM, TIGER]
+  aliases: [lm head, item head, generation head]
+  query_examples: [next item logits, semantic token logits]
+composition:
+  requires: [sequence_output]
+  produces: [logits]
+  common_upstream: [hstu_sequence_encoder, transformer_sequence_encoder, sasrec_sequence_encoder]
+  common_downstream: [sequence_cross_entropy, serving_export]
+  example_genome_fragment: "skill: sequence_lm_head\nparams: {hidden_dim: 64, vocab_size: 1000}"

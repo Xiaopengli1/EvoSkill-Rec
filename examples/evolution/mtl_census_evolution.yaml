@@ -1,0 +1,115 @@
+# Multi-task (MTL) recommendation-model evolution on census-income.
+# The run starts from an AITM-style initial genome.
+#
+# Two binary tasks are trained jointly:
+#   * income          -> task 0, modelled as the CTR-style task
+#   * marital status   -> task 1, modelled as the CVR-style task
+#
+# The evolution searches over the shared-transform architecture that turns the
+# flattened field embeddings into per-task representations
+# (aitm / ple / mmoe / shared_bottom / task_specific) and tunes its capacity.
+
+experiment_name: mtl_evolution_census_aitm
+output_dir: outputs/evolution/mtl_census_aitm
+memory_path:
+write_metadata_files: true
+write_summary_json: true
+write_evolution_memory: true
+write_code_space_diagnostics: false
+write_survivor_artifacts: true
+survivor_artifacts_dir: survivors
+
+dataset:
+  name: census_income_mtl
+  type: census_mtl
+  train_path: examples/ranking/data/census-income/census_income_train.csv
+  val_path: examples/ranking/data/census-income/census_income_val.csv
+  test_path: examples/ranking/data/census-income/census_income_test.csv
+  # income = CTR task (task 0), marital status = CVR task (task 1)
+  label_cols: [income, marital status]
+  task_names: [income_ctr, marital_cvr]
+  task_types: [classification, classification]
+  dense_cols:
+    - age
+    - wage per hour
+    - capital gains
+    - capital losses
+    - divdends from stocks
+    - num persons worked for employer
+    - weeks worked in year
+
+genome:
+  template: aitm
+  embedding_dim: 8
+  shared_hidden_dims: [128, 64]
+  task_hidden_dims: [32]
+  expert_dim: 32
+  num_experts: 4
+  ple_shared_experts: 1
+  ple_specific_experts: 1
+  dropout: 0.1
+  activation: relu
+  # task_weights: [1.0, 1.0]   # optional per-task loss weights
+
+training:
+  epoch: 20
+  learning_rate: 0.001
+  batch_size: 2048
+  weight_decay: 0.0001
+  device: cuda:0
+  seed: 2022
+  num_workers: 0
+  earlystop_patience: 3
+  objective_metric: auc      # mean per-task AUC
+  min_delta: 0.0
+  loss_key: loss
+  logits_key: logits
+  prediction_key: prediction
+
+evolution:
+  enabled: true
+  rounds: 25
+  candidate_budget: 8
+  strategy: templates
+  code_space_probability: 0.0
+  keep_top_k: 3
+  survivor_top_k: 3
+  deduplicate_architectures: true
+  deduplicate_against_memory: true
+  failure_modes: [negative_transfer_between_tasks]
+  templates:
+    - name: swap_aitm
+      template: aitm
+      operation: replace
+    - name: swap_mmoe
+      template: mmoe
+      operation: replace
+    - name: swap_ple
+      template: ple
+      operation: replace
+    - name: swap_task_specific
+      template: task_specific
+      operation: replace
+    - name: swap_shared_bottom
+      template: shared_bottom
+      operation: replace
+    - name: mmoe_more_experts
+      template: mmoe
+      operation: specialize
+      num_experts: 8
+    - name: ple_more_experts
+      template: ple
+      operation: specialize
+      ple_specific_experts: 2
+      ple_shared_experts: 2
+    - name: wider_shared_bottom
+      template: shared_bottom
+      operation: specialize
+      shared_hidden_dims: [256, 128]
+    - name: deeper_task_tower
+      template: shared_bottom
+      operation: specialize
+      task_hidden_dims: [64, 32]
+  code_space:
+    provider: fallback
+    reuse_promoted_generated_skills: true

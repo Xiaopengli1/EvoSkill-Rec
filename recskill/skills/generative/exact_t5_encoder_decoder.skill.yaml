@@ -1,0 +1,55 @@
+name: exact_t5_encoder_decoder
+skill_id: exact_t5_encoder_decoder
+category: generative
+description: TIGER exact T5 encoder-decoder wrapper.
+inputs:
+- name: input_ids
+  shape: '[batch_size, seq_len]'
+outputs:
+- name: logits
+  shape: '[batch_size, target_len, vocab_size]'
+task_types: &id001
+- generative
+source:
+  file: torch_rechub/models/generative/tiger.py
+  class_or_function: TIGERModel
+  extraction_type: wrapped_exact
+retrieval:
+  summary: Use this for TIGER's T5ForConditionalGeneration semantic-ID generator.
+  task_types:
+  - generative
+  architecture_roles:
+  - encoder_decoder
+  - t5
+  - generative_model
+  input_modalities:
+  - input_ids
+  output_semantics:
+  - logits
+  model_families:
+  - TIGER
+  aliases:
+  - TIGER
+  - T5 encoder decoder
+  - semantic id generator
+  use_when:
+  - Use this for TIGER's T5ForConditionalGeneration semantic-ID generator.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for TIGER's T5ForConditionalGeneration semantic-ID generator.
+composition:
+  requires:
+  - input_ids
+  produces:
+  - logits
+  - tiger_output
+  common_downstream:
+  - ranking_loss_temperature
+  - trie_constrained_decoding
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: exact_t5_encoder_decoder
+    params: {}

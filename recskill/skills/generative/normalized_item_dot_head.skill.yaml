@@ -1,0 +1,59 @@
+name: normalized_item_dot_head
+skill_id: normalized_item_dot_head
+category: generative
+description: HLLM cosine item scoring head.
+inputs:
+- name: sequence_output
+  shape: '[batch_size, seq_len, d_model]'
+- name: item_embeddings
+  shape: '[vocab_size, d_model]'
+outputs:
+- name: logits
+  shape: '[batch_size, seq_len, vocab_size]'
+task_types: &id001
+- generative
+- matching
+- sequence
+source:
+  file: torch_rechub/models/generative/hllm.py
+  class_or_function: normalized item dot-product head
+  extraction_type: reimplemented_exact
+retrieval:
+  summary: Use this for HLLM normalized user-item dot-product logits.
+  task_types:
+  - generative
+  - matching
+  - sequence
+  architecture_roles:
+  - head
+  - item_dot_head
+  input_modalities:
+  - sequence_output
+  - item_embeddings
+  output_semantics:
+  - logits
+  model_families:
+  - HLLM
+  aliases:
+  - normalized dot head
+  - cosine item head
+  use_when:
+  - Use this for HLLM normalized user-item dot-product logits.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for HLLM normalized user-item dot-product logits.
+composition:
+  requires:
+  - sequence_output
+  - item_embeddings
+  produces:
+  - logits
+  common_downstream:
+  - sequence_cross_entropy_loss
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: normalized_item_dot_head
+    params: {}

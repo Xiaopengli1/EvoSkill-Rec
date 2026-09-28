@@ -1,0 +1,21 @@
+name: linear_logit
+category: head
+description: Project a dense representation to a scalar logit.
+retrieval:
+  summary: Use this for first-order, wide, or tower logit projections.
+  use_when: A model branch needs a single trainable logit from a flat tensor.
+  avoid_when: The branch already outputs calibrated probabilities.
+  task_types: [ctr, ranking, matching]
+  architecture_roles: [linear_head, wide_branch, logit_projection]
+  input_modalities: [dense_representation]
+  output_semantics: [logits]
+  objectives: [click_prediction, retrieval_scoring]
+  model_families: [WideDeep, DeepFM, ESMM]
+  aliases: [linear logit, wide branch, first order]
+  query_examples: [wide linear branch, project features to logits]
+composition:
+  requires: [flat_embeddings]
+  produces: [logits]
+  common_upstream: [flatten_field_embeddings, mlp_tower]
+  common_downstream: [additive_fusion, sigmoid_prediction, bce_loss]
+  example_genome_fragment: "skill: linear_logit\nparams: {input_key: flat_embeddings, output_key: wide_logit, input_dim: 64}"

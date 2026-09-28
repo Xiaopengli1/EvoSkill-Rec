@@ -1,0 +1,19 @@
+model_name: rqvae_skillified
+task_type: generative
+
+inputs:
+  dense_input:
+    shape: [batch_size, input_dim]
+    dtype: float32
+
+skills:
+  - id: rqvae_quantizer
+    skill: rqvae_quantization
+    params:
+      input_key: dense_input
+      output_key: quantized
+      reconstruction_key: reconstruction
+      loss_key: rqvae_loss
+      input_dim: ${input_dim}
+      latent_dim: ${latent_dim}
+      num_codes: ${num_codes}

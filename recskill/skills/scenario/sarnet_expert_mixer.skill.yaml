@@ -1,0 +1,64 @@
+name: sarnet_expert_mixer
+category: scenario
+description: Mix SARNET shared and domain-specific debias experts using the active domain id.
+inputs:
+  - name: flat_embeddings
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+  - name: domain_id
+    shape: "[batch_size]"
+    dtype: int64
+outputs:
+  - name: prediction
+    shape: "[batch_size]"
+    dtype: float32
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - shared_domain_experts
+  - domain_specific_debiasing
+failure_signatures:
+  - input_dim_mismatch
+  - domain_id_out_of_range
+good_for:
+  - SARNET-style debias experts with explicit active domain ids
+bad_for:
+  - architectures without shared/specific expert separation
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+    - domain_indicator_adapter
+  downstream:
+    - bce_loss
+source:
+  file: torch_rechub/models/multi_domain/sarnet.py
+  class_or_function: Sarnet
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for SARNET-style shared and domain-specific debias expert mixing."
+  use_when:
+    - "The model should combine shared debias experts with the active domain's specific experts."
+  avoid_when:
+    - "The model uses soft latent clusters rather than explicit domain ids."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [domain_expert_mixer, sarnet, debias_expert]
+  input_modalities: [flat_embeddings, domain_ids]
+  output_semantics: [prediction]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [Sarnet]
+  aliases: [SARNET, debias expert mixer, domain specific experts]
+  query_examples:
+    - "SARNET expert mixer"
+    - "domain-specific debias experts"
+composition:
+  requires: [flat_embeddings, domain_id]
+  produces: [prediction]
+  common_upstream: [field_embedding, flatten_field_embeddings, domain_indicator_adapter]
+  common_downstream: [bce_loss]
+  example_genome_fragment:
+    skill: sarnet_expert_mixer
+    params:
+      input_key: flat_embeddings
+      domain_key: domain_id
+      output_key: prediction
+      input_dim: "${input_dim}"
+      domain_num: "${domain_num}"

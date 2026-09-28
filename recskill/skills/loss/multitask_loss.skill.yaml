@@ -1,0 +1,59 @@
+name: multitask_loss
+skill_id: multitask_loss
+category: loss
+description: Weighted multitask loss for classification/regression heads.
+inputs:
+- name: task_outputs
+  shape: '[batch_size, n_task]'
+- name: task_labels
+  shape: '[batch_size, n_task]'
+outputs:
+- name: loss
+  shape: '[]'
+task_types: &id001
+- multitask
+source:
+  file: torch_rechub/models/multi_task
+  class_or_function: multitask training objective adapter
+  extraction_type: reusable_loss
+retrieval:
+  summary: Use this to train SharedBottom/MMOE/PLE/ESMM/AITM outputs.
+  task_types:
+  - multitask
+  architecture_roles:
+  - loss
+  - multitask_loss
+  input_modalities:
+  - task_outputs
+  - task_labels
+  output_semantics:
+  - loss
+  model_families:
+  - SharedBottom
+  - MMOE
+  - PLE
+  - ESMM
+  - AITM
+  aliases:
+  - multi task loss
+  - task weighted loss
+  use_when:
+  - Use this to train SharedBottom/MMOE/PLE/ESMM/AITM outputs.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this to train SharedBottom/MMOE/PLE/ESMM/AITM outputs.
+composition:
+  requires:
+  - task_outputs
+  - task_labels
+  produces:
+  - loss
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: multitask_loss
+    params: {}

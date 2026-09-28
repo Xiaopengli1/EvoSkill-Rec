@@ -1,0 +1,21 @@
+name: task_replication
+category: multitask
+description: Replicate one shared representation for multiple task towers.
+retrieval:
+  summary: Use this after a shared-bottom tower before task-specific heads.
+  use_when: All tasks should receive the same shared representation.
+  avoid_when: Tasks require separate experts or gates; use mmoe_gate or ple_gate.
+  task_types: [multitask]
+  architecture_roles: [shared_bottom_adapter, task_representation]
+  input_modalities: [dense_representation]
+  output_semantics: [task_representations]
+  objectives: [multitask_prediction]
+  model_families: [SharedBottom]
+  aliases: [replicate tasks, shared bottom fanout]
+  query_examples: [fan out shared bottom to tasks, replicate representation]
+composition:
+  requires: [shared_representation]
+  produces: [task_representations]
+  common_upstream: [shared_bottom_tower]
+  common_downstream: [task_tower]
+  example_genome_fragment: "skill: task_replication\nparams: {n_task: 2}"

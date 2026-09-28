@@ -1,0 +1,177 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "evoskillrec"
+version = "0.8.0"
+description = "Skill-based architecture evolution for recommendation models in PyTorch."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+    "recommendation",
+    "deep-learning",
+    "pytorch",
+    "ctr",
+    "matching",
+    "ranking",
+    "multi-task",
+    "recsys",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=1.10.0",
+    "numpy>=1.19.0",
+    "pandas>=1.2.0",
+    "scikit-learn>=0.24.0",
+    "tqdm>=4.60.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+annoy = ["annoy>=1.17.2"]
+faiss = ["faiss-cpu==1.13.0"]
+milvus = ["pymilvus>=2.6.5"]
+generative = [
+    "accelerate>=1.0.1",
+    "transformers>=4.46.3",
+]
+bigdata = [
+    "pyarrow>=21,<23",
+]
+onnx = [
+    "ml-dtypes>=0.5.0",
+    "onnx>=1.14.0",
+    "onnxscript>=0.1.0",
+    "onnxruntime>=1.14.0",
+    "onnxconverter-common>=1.14.0",
+]
+visualization = [
+    "torchview>=0.2.6",
+    "graphviz>=0.20",
+]
+tracking = [
+    "wandb>=0.13.0",
+    "swanlab>=0.1.0",
+    "tensorboardX>=2.5",
+]
+test = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+]
+all = [
+    "annoy>=1.17.2",
+    "faiss-cpu==1.13.0",
+    "pymilvus>=2.6.5",
+    "accelerate>=1.0.1",
+    "transformers>=4.46.3",
+    "pyarrow>=21,<23",
+    "ml-dtypes>=0.5.0",
+    "onnx>=1.14.0",
+    "onnxscript>=0.1.0",
+    "onnxruntime>=1.14.0",
+    "onnxconverter-common>=1.14.0",
+    "torchview>=0.2.6",
+    "graphviz>=0.20",
+    "wandb>=0.13.0",
+    "swanlab>=0.1.0",
+    "tensorboardX>=2.5",
+    "pyyaml>=6.0",
+]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "flake8>=3.8.0",
+    "yapf==0.43.0",
+    "isort==5.13.2",
+    "mypy>=0.800",
+    "pre-commit>=2.20.0",
+    "bandit>=1.7.0",
+    "toml>=0.10.2",
+    "pyarrow-stubs>=20.0",
+    "pyyaml>=6.0",
+]
+
+# Development dependencies
+[dependency-groups]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "flake8>=3.8.0",
+    "yapf==0.43.0",
+    "isort==5.13.2",
+    "mypy>=0.800",
+    "pre-commit>=2.20.0",
+    "bandit>=1.7.0",
+    "toml>=0.10.2",
+    "pyyaml>=6.0",
+]
+
+# Tool configuration
+[tool.hatch.build.targets.wheel]
+packages = ["torch_rechub", "recskill", "rec_skill_genome"]
+
+[tool.isort]
+profile = "black"
+line_length = 248
+known_third_party = ["torch", "numpy", "pandas", "sklearn", "tqdm"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip_glob = ["**/migrations/*", "**/__pycache__/*"]
+
+[tool.yapf]
+based_on_style = "google"
+column_limit = 248
+join_multiple_lines = false
+split_all_comma_separated_values = true
+split_before_logical_operator = true
+dedent_closing_brackets = true
+align_closing_bracket_with_visual_indent = true
+indent_width = 4
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["recskill", "torch_rechub"]
+omit = ["*/tests/*", "*/examples/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true

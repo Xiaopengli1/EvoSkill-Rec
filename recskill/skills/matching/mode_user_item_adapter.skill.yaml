@@ -1,0 +1,63 @@
+name: mode_user_item_adapter
+skill_id: mode_user_item_adapter
+category: matching
+description: User/item serving mode router for two-tower models.
+inputs:
+- name: user_embedding
+  shape: '[batch_size, embedding_dim]'
+- name: item_embedding
+  shape: '[batch_size, embedding_dim]'
+outputs:
+- name: mode_output
+  shape: '[batch_size, embedding_dim]'
+task_types: &id001
+- matching
+source:
+  file: torch_rechub/models/matching
+  class_or_function: mode user/item adapter
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this for DSSM/YoutubeDNN-style model.mode == user/item serving.
+  task_types:
+  - matching
+  architecture_roles:
+  - adapter
+  - serving_mode
+  input_modalities:
+  - user_embedding
+  - item_embedding
+  output_semantics:
+  - mode_output
+  model_families:
+  - DSSM
+  - FaceBookDSSM
+  - YoutubeDNN
+  - YoutubeSBC
+  - GRU4Rec
+  - MIND
+  - ComirecSA
+  - ComirecDR
+  aliases:
+  - user mode
+  - item mode
+  - matching mode
+  use_when:
+  - Use this for DSSM/YoutubeDNN-style model.mode == user/item serving.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for DSSM/YoutubeDNN-style model.mode == user/item serving.
+composition:
+  requires:
+  - user_embedding
+  - item_embedding
+  produces:
+  - mode_output
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: mode_user_item_adapter
+    params: {}

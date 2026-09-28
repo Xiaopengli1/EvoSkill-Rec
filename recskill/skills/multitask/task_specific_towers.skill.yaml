@@ -1,0 +1,21 @@
+name: task_specific_towers
+category: multitask
+description: Build task representations with separate bottom towers from a shared input.
+retrieval:
+  summary: Use this for AITM-style task-specific bottom representations.
+  use_when: Each task needs its own bottom tower before ordered transfer.
+  avoid_when: A shared-bottom representation should be reused unchanged.
+  task_types: [multitask]
+  architecture_roles: [task_specific_bottom, task_representation]
+  input_modalities: [dense_representation]
+  output_semantics: [task_representations]
+  objectives: [multitask_prediction]
+  model_families: [AITM]
+  aliases: [task bottoms, separate towers, AITM bottoms]
+  query_examples: [AITM task-specific bottoms, separate bottom MLP per task]
+composition:
+  requires: [shared_input]
+  produces: [task_representations]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [aitm_transfer, task_tower]
+  example_genome_fragment: "skill: task_specific_towers\nparams: {input_dim: 64, n_task: 3, hidden_dims: [32]}"

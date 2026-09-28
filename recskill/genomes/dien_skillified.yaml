@@ -1,0 +1,90 @@
+model_name: dien_skillified
+task_type: ctr
+
+inputs:
+  context_features:
+    shape: [batch_size, num_context_fields]
+    dtype: int64
+  history_features:
+    shape: [batch_size, num_history_fields, seq_len]
+    dtype: int64
+  target_features:
+    shape: [batch_size, num_history_fields]
+    dtype: int64
+
+skills:
+  - id: context_embedding
+    skill: field_embedding
+    params:
+      input_key: context_features
+      output_key: context_embeddings
+      vocab_sizes: ${context_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: history_embedding
+    skill: sequence_field_embedding
+    params:
+      input_key: history_features
+      output_key: history_embeddings
+      vocab_sizes: ${history_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: target_embedding
+    skill: field_embedding
+    params:
+      input_key: target_features
+      output_key: target_embeddings
+      vocab_sizes: ${target_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: interest_evolution
+    skill: dien_interest_evolution
+    params:
+      history_key: history_embeddings
+      target_key: target_embeddings
+      ids_key: history_features
+      output_key: interest_evolving
+      aux_loss_key: aux_loss
+      embedding_dim: ${embedding_dim}
+      num_fields: ${num_history_fields}
+
+  - id: flatten_interest
+    skill: flatten_field_embeddings
+    params:
+      input_key: interest_evolving
+      output_key: interest_flat
+
+  - id: flatten_target
+    skill: flatten_field_embeddings
+    params:
+      input_key: target_embeddings
+      output_key: target_flat
+
+  - id: flatten_context
+    skill: flatten_field_embeddings
+    params:
+      input_key: context_embeddings
+      output_key: context_flat
+
+  - id: fusion
+    skill: concat_fusion
+    params:
+      input_keys: [interest_flat, target_flat, context_flat]
+      output_key: dien_mlp_input
+
+  - id: mlp
+    skill: mlp_tower
+    params:
+      input_key: dien_mlp_input
+      output_key: logits
+      input_dim: ${dien_input_dim}
+      hidden_dims: ${hidden_dims}
+      dropout: 0.0
+      activation: dice
+      output_layer: true
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

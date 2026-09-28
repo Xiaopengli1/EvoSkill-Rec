@@ -1,0 +1,71 @@
+name: sequence_field_embedding
+category: embedding
+description: Embed integer sequence feature fields into dense sequence tensors.
+inputs:
+  - name: sequence_features
+    shape: "[batch_size, num_fields, seq_len]"
+    dtype: int64
+outputs:
+  - name: sequence_embeddings
+    shape: "[batch_size, num_fields, seq_len, embedding_dim]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+  - sequence
+inductive_bias:
+  - categorical_sequence_lookup
+failure_signatures:
+  - out_of_range_ids
+  - feature_count_mismatch
+good_for:
+  - DIN history sequence features
+bad_for:
+  - continuous sequence features without discretization
+compatible_with:
+  upstream:
+    - raw_sequence_feature_adapter
+  downstream:
+    - din_target_attention
+constraints:
+  ids_must_be_less_than_vocab_size: true
+cost:
+  parameters: "sum(vocab_sizes) * embedding_dim"
+  compute: "O(batch_size * num_fields * seq_len * embedding_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - shared_sequence_embedding
+  can_be_augmented_by:
+    - sequence_position_embedding
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: EmbeddingLayer
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this when one or more sequence fields need independent embedding tables before attention or pooling."
+  use_when:
+    - "The batch has integer sequence ids shaped [batch_size, num_fields, seq_len]."
+    - "History behavior fields should be embedded for DIN-style target attention."
+  avoid_when:
+    - "History, positive, and negative sequences must share one item table; use shared_sequence_embedding instead."
+    - "The sequence values are continuous dense vectors."
+  task_types: [ctr, ranking, sequence]
+  architecture_roles: [embedding, sequence_adapter, history_embedding]
+  input_modalities: [sequence_ids, categorical_sequences]
+  output_semantics: [sequence_embeddings, history_embeddings]
+  objectives: [click_prediction, target_conditioned_interest]
+  model_families: [DIN, DIEN, BST]
+  aliases: [history embedding, sequence feature embedding, behavior sequence lookup]
+  query_examples:
+    - "embed user history sequence for DIN"
+    - "sequence categorical feature lookup"
+composition:
+  requires: [sequence_features]
+  produces: [sequence_embeddings]
+  common_upstream: [raw_sequence_batch]
+  common_downstream: [din_target_attention, sasrec_sequence_encoder]
+  example_genome_fragment:
+    skill: sequence_field_embedding
+    params:
+      vocab_sizes: "${history_vocab_sizes}"
+      embedding_dim: "${embedding_dim}"

@@ -1,0 +1,21 @@
+name: ple_gate
+category: multitask
+description: PLE-style expert mixing for task representations.
+retrieval:
+  summary: Use this for Progressive Layered Extraction style multitask genomes.
+  use_when: Shared and task-specific experts should be mixed by task gates.
+  avoid_when: A single shared bottom tower is enough.
+  task_types: [multitask]
+  architecture_roles: [ple_gate, progressive_experts, task_gate]
+  input_modalities: [dense_representation]
+  output_semantics: [task_representations]
+  objectives: [multitask_prediction]
+  model_families: [PLE]
+  aliases: [ple, cgc, progressive extraction]
+  query_examples: [PLE expert gate]
+composition:
+  requires: [shared_input]
+  produces: [task_representations]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [task_tower]
+  example_genome_fragment: "skill: ple_gate\nparams: {input_dim: 64, n_task: 2, n_expert_shared: 1, n_expert_specific: 1, expert_hidden_dims: [32]}"

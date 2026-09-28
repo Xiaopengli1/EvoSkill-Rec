@@ -1,0 +1,65 @@
+model_name: multi_domain_shared_bottom_skillified
+task_type: multi_domain
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+  domain_indicator:
+    shape: [batch_size]
+    dtype: int64
+
+skills:
+  - id: domain_adapter
+    skill: domain_indicator_adapter
+    params:
+      input_key: domain_indicator
+      output_key: domain_id
+      num_domains: ${domain_num}
+
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: field_embeddings
+      output_key: shared_input
+
+  - id: bottom
+    skill: shared_bottom_tower
+    params:
+      input_key: shared_input
+      output_key: shared_representation
+      input_dim: ${input_dim}
+      hidden_dims: ${bottom_hidden_dims}
+      dropout: 0.0
+      activation: relu
+
+  - id: domain_replication
+    skill: task_replication
+    params:
+      input_key: shared_representation
+      output_key: domain_representations
+      n_task: ${domain_num}
+
+  - id: domain_towers
+    skill: task_tower
+    params:
+      input_key: domain_representations
+      output_key: domain_outputs
+      input_dim: ${bottom_output_dim}
+      task_types: ${domain_task_types}
+      tower_hidden_dims: ${tower_hidden_dims}
+      dropout: 0.0
+      activation: relu
+
+  - id: domain_select
+    skill: domain_select
+    params:
+      input_key: domain_outputs
+      domain_key: domain_id
+      output_key: prediction

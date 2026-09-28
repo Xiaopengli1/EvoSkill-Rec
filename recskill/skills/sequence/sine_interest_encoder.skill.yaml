@@ -1,0 +1,21 @@
+name: sine_interest_encoder
+category: sequence
+description: SINE sparse conceptual interest encoder.
+retrieval:
+  summary: Use this for SINE-style sparse-interest sequential matching.
+  use_when: A sequence model should select conceptual prototypes and aggregate user intentions.
+  avoid_when: Multi-interest self-attention or capsule routing is desired instead.
+  task_types: [matching, sequence]
+  architecture_roles: [sparse_interest_encoder, concept_memory, intention_assignment]
+  input_modalities: [sequence_embeddings, sequence_ids]
+  output_semantics: [user_embedding]
+  objectives: [sequential_matching]
+  model_families: [SINE]
+  aliases: [SINE, sparse interest, concept prototype]
+  query_examples: [SINE interest encoder, sparse conceptual interests]
+composition:
+  requires: [seq_embeddings, seq_features]
+  produces: [user_embedding]
+  common_upstream: [shared_sequence_embedding]
+  common_downstream: [candidate_dot_logits]
+  example_genome_fragment: "skill: sine_interest_encoder\nparams: {embedding_dim: 8, hidden_dim: 16, num_concept: 8, num_intention: 4, seq_len: 20}"

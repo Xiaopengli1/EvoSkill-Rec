@@ -1,0 +1,82 @@
+model_name: mind_skillified
+task_type: matching
+
+inputs:
+  user_features:
+    shape: [batch_size, num_user_fields]
+    dtype: int64
+  history_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+  pos_item_features:
+    shape: [batch_size, 1]
+    dtype: int64
+  neg_item_features:
+    shape: [batch_size, n_neg]
+    dtype: int64
+
+skills:
+  - id: user_embedding
+    skill: field_embedding
+    params:
+      input_key: user_features
+      output_key: user_field_embeddings
+      vocab_sizes: ${user_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: user_flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: user_field_embeddings
+      output_key: user_context
+
+  - id: shared_item_embedding
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [history_features, pos_item_features, neg_item_features]
+      output_keys: [history_embeddings, pos_item_embeddings, neg_item_embeddings]
+      vocab_size: ${item_vocab_size}
+      embedding_dim: ${embedding_dim}
+
+  - id: interests
+    skill: multi_interest_extractor
+    params:
+      input_key: history_embeddings
+      ids_key: history_features
+      output_key: multi_interest_embeddings
+      embedding_dim: ${embedding_dim}
+      seq_len: ${seq_len}
+      interest_num: ${interest_num}
+      mode: mind_capsule
+
+  - id: user_fusion
+    skill: multi_interest_fusion
+    params:
+      user_key: user_context
+      interest_key: multi_interest_embeddings
+      output_key: user_embedding
+      user_dim: ${user_dim}
+      embedding_dim: ${embedding_dim}
+      output_dim: ${embedding_dim}
+      interest_num: ${interest_num}
+
+  - id: item_candidates
+    skill: concat_fusion
+    params:
+      input_keys: [pos_item_embeddings, neg_item_embeddings]
+      output_key: item_candidates
+      dim: 1
+
+  - id: item_normalize
+    skill: normalize_embedding
+    params:
+      input_key: item_candidates
+      output_key: item_candidate_embeddings
+
+  - id: score
+    skill: candidate_dot_logits
+    params:
+      user_key: user_embedding
+      candidate_key: item_candidate_embeddings
+      output_key: scores
+      temperature: ${temperature}

@@ -1,0 +1,66 @@
+model_name: multi_domain_epnet_skillified
+task_type: multi_domain
+
+inputs:
+  scenario_features:
+    shape: [batch_size, num_scenario_fields]
+    dtype: int64
+  agnostic_features:
+    shape: [batch_size, num_agnostic_fields]
+    dtype: int64
+
+skills:
+  - id: scenario_embedding
+    skill: field_embedding
+    params:
+      input_key: scenario_features
+      output_key: scenario_embeddings
+      vocab_sizes: ${scenario_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_scenario
+    skill: flatten_field_embeddings
+    params:
+      input_key: scenario_embeddings
+      output_key: scenario_context
+
+  - id: agnostic_embedding
+    skill: field_embedding
+    params:
+      input_key: agnostic_features
+      output_key: agnostic_embeddings
+      vocab_sizes: ${agnostic_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_agnostic
+    skill: flatten_field_embeddings
+    params:
+      input_key: agnostic_embeddings
+      output_key: agnostic_flat
+
+  - id: gate
+    skill: gate_nu_feature_gate
+    params:
+      scenario_key: scenario_context
+      feature_key: agnostic_flat
+      output_key: gated_agnostic
+      gate_output_key: scenario_gate
+      scenario_dim: ${scenario_dim}
+      feature_dim: ${agnostic_dim}
+
+  - id: prediction_tower
+    skill: mlp_tower
+    params:
+      input_key: gated_agnostic
+      output_key: logits
+      input_dim: ${agnostic_dim}
+      hidden_dims: ${fcn_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: true
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

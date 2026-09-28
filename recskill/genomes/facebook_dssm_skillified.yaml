@@ -1,0 +1,106 @@
+model_name: facebook_dssm_skillified
+task_type: matching
+
+inputs:
+  user_features:
+    shape: [batch_size, num_user_fields]
+    dtype: int64
+  pos_item_features:
+    shape: [batch_size, num_item_fields]
+    dtype: int64
+  neg_item_features:
+    shape: [batch_size, num_item_fields]
+    dtype: int64
+
+skills:
+  - id: user_embedding
+    skill: field_embedding
+    params:
+      input_key: user_features
+      output_key: user_field_embeddings
+      vocab_sizes: ${user_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: user_flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: user_field_embeddings
+      output_key: user_flat
+
+  - id: user_tower
+    skill: mlp_tower
+    params:
+      input_key: user_flat
+      output_key: user_raw
+      input_dim: ${user_input_dim}
+      hidden_dims: ${user_hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: false
+
+  - id: user_normalize
+    skill: normalize_embedding
+    params:
+      input_key: user_raw
+      output_key: user_embedding
+
+  - id: pos_item_embedding
+    skill: field_embedding
+    params:
+      input_key: pos_item_features
+      output_key: pos_item_field_embeddings
+      vocab_sizes: ${item_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: neg_item_embedding
+    skill: field_embedding
+    params:
+      input_key: neg_item_features
+      output_key: neg_item_field_embeddings
+      vocab_sizes: ${item_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: pos_item_flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: pos_item_field_embeddings
+      output_key: pos_item_flat
+
+  - id: neg_item_flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: neg_item_field_embeddings
+      output_key: neg_item_flat
+
+  - id: item_tower
+    skill: shared_mlp_tower
+    params:
+      input_keys: [pos_item_flat, neg_item_flat]
+      output_keys: [pos_item_raw, neg_item_raw]
+      input_dim: ${item_input_dim}
+      hidden_dims: ${item_hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: false
+
+  - id: pos_item_normalize
+    skill: normalize_embedding
+    params:
+      input_key: pos_item_raw
+      output_key: pos_item_embedding
+
+  - id: neg_item_normalize
+    skill: normalize_embedding
+    params:
+      input_key: neg_item_raw
+      output_key: neg_item_embedding
+
+  - id: score
+    skill: dot_product_logits
+    params:
+      user_key: user_embedding
+      item_key: pos_item_embedding
+      neg_item_key: neg_item_embedding
+      pos_output_key: pos_logits
+      neg_output_key: neg_logits
+      temperature: ${temperature}

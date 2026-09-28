@@ -1,0 +1,55 @@
+name: kmeans_sinkhorn_initialization
+skill_id: kmeans_sinkhorn_initialization
+category: generative
+description: RQVAE kmeans codebook initialization and Sinkhorn assignment helper.
+inputs:
+- name: samples
+  shape: '[num_samples, dim]'
+outputs:
+- name: centers
+  shape: '[num_clusters, dim]'
+task_types: &id001
+- generative
+- matching
+source:
+  file: torch_rechub/models/generative/rqvae.py
+  class_or_function: kmeans / sinkhorn_algorithm
+  extraction_type: wrapped_exact
+retrieval:
+  summary: Use this for RQVAE codebook initialization or balanced Sinkhorn assignment.
+  task_types:
+  - generative
+  - matching
+  architecture_roles:
+  - initialization
+  - sinkhorn
+  input_modalities:
+  - samples
+  - distances
+  output_semantics:
+  - centers
+  - assignment
+  model_families:
+  - RQVAE
+  aliases:
+  - kmeans init
+  - sinkhorn assignment
+  use_when:
+  - Use this for RQVAE codebook initialization or balanced Sinkhorn assignment.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for RQVAE codebook initialization or balanced Sinkhorn assignment.
+composition:
+  requires:
+  - samples
+  produces:
+  - centers
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: kmeans_sinkhorn_initialization
+    params: {}

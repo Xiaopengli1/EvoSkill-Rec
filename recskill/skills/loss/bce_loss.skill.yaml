@@ -1,0 +1,74 @@
+name: bce_loss
+category: loss
+description: Compute binary cross-entropy loss from logits or probabilities and labels.
+inputs:
+  - name: logits
+    shape: "[batch_size, 1]"
+    dtype: float32
+  - name: labels
+    shape: "[batch_size]"
+    dtype: float32
+outputs:
+  - name: loss
+    shape: "[]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+inductive_bias:
+  - binary_classification_likelihood
+failure_signatures:
+  - label_shape_mismatch
+  - nan_logits
+good_for:
+  - binary click-through-rate objectives
+bad_for:
+  - pairwise ranking objectives
+compatible_with:
+  upstream:
+    - binary_ctr_head
+  downstream:
+    - optimizer_step
+constraints:
+  labels_are_binary_or_probabilities: true
+cost:
+  parameters: 0
+  compute: "O(batch_size)"
+mutation_roles:
+  can_be_replaced_by:
+    - focal_loss
+    - weighted_bce_loss
+  can_be_augmented_by:
+    - label_smoothing
+source:
+  file: torch_rechub/trainers/ctr_trainer.py
+  class_or_function: torch.nn.BCELoss usage
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for binary click prediction losses when logits or probabilities and labels are present in the context."
+  use_when:
+    - "The task is binary CTR/ranking classification."
+    - "The context contains labels and a single logit/probability per example."
+  avoid_when:
+    - "The task is pairwise ranking, sampled softmax, or multitask with multiple labels."
+  task_types: [ctr, ranking]
+  architecture_roles: [loss, binary_classification_loss]
+  input_modalities: [logits, labels]
+  output_semantics: [loss]
+  objectives: [binary_classification, click_prediction]
+  model_families: [DeepFM, DCN, DIN, WideDeep]
+  aliases: [BCE, binary cross entropy, CTR loss, click loss]
+  query_examples:
+    - "binary CTR loss from logits"
+    - "compute click prediction BCE"
+composition:
+  requires: [logits, labels]
+  produces: [loss]
+  common_upstream: [binary_ctr_head]
+  common_downstream: [optimizer_step]
+  example_genome_fragment:
+    skill: bce_loss
+    params:
+      logits_key: logits
+      labels_key: labels
+      output_key: loss

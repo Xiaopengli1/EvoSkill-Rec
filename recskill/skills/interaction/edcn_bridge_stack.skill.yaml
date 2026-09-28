@@ -1,0 +1,21 @@
+name: edcn_bridge_stack
+category: interaction
+description: EDCN regulation, cross/deep iteration, and bridge module stack.
+retrieval:
+  summary: Use this for EDCN's explicit and implicit interaction sharing stack.
+  use_when: Cross and deep branches should exchange information through EDCN bridge modules.
+  avoid_when: A plain DCN cross branch without bridge sharing is enough.
+  task_types: [ctr, ranking]
+  architecture_roles: [edcn_stack, bridge_module, regulation_module]
+  input_modalities: [flat_embeddings]
+  output_semantics: [cross_representation, deep_representation, bridge_representation]
+  objectives: [click_prediction]
+  model_families: [EDCN]
+  aliases: [edcn, bridge stack, regulation module]
+  query_examples: [EDCN bridge module, explicit implicit sharing]
+composition:
+  requires: [flat_embeddings]
+  produces: [cross_output, deep_output, bridge_output]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [concat_fusion, linear_logit, binary_ctr_head]
+  example_genome_fragment: "skill: edcn_bridge_stack\nparams: {input_dim: 64, num_fields: 8, field_dims: [8, 8, 8, 8, 8, 8, 8, 8], n_cross_layers: 2}"

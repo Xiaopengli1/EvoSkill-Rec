@@ -1,0 +1,74 @@
+name: shared_sequence_embedding
+category: embedding
+description: Embed several sequence id tensors with a shared item embedding table.
+inputs:
+  - name: input_keys
+    shape: "list[[batch_size, seq_len]]"
+    dtype: int64
+outputs:
+  - name: output_keys
+    shape: "list[[batch_size, seq_len, embedding_dim]]"
+    dtype: float32
+task_types:
+  - generative
+  - matching
+  - sequence
+inductive_bias:
+  - shared_item_embedding_space
+failure_signatures:
+  - out_of_range_ids
+  - seq_len_mismatch
+good_for:
+  - SASRec history positive negative sequence embeddings
+bad_for:
+  - features requiring separate embedding spaces
+compatible_with:
+  upstream:
+    - raw_sequence_feature_adapter
+  downstream:
+    - sasrec_sequence_encoder
+    - sasrec_pairwise_logits
+constraints:
+  all_inputs_are_item_ids: true
+cost:
+  parameters: "vocab_size * embedding_dim"
+  compute: "O(number_of_inputs * batch_size * seq_len * embedding_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - sequence_field_embedding
+  can_be_augmented_by:
+    - pretrained_item_embeddings
+source:
+  file: torch_rechub/models/matching/sasrec.py
+  class_or_function: SASRec.item_emb shared SequenceFeature setup
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this when multiple item-id sequences should share one item embedding table, especially SASRec-style seq/pos/neg inputs."
+  use_when:
+    - "History, positive, and negative item sequences live in the same item vocabulary."
+    - "A sequence encoder and item-dot head must operate in a shared latent space."
+  avoid_when:
+    - "Each sequence field has a separate vocabulary or embedding dimension."
+    - "The task needs target-conditioned pooling rather than autoregressive sequence encoding."
+  task_types: [generative, matching, sequence]
+  architecture_roles: [embedding, shared_item_embedding, sequence_adapter]
+  input_modalities: [item_sequence_ids, sequence_ids]
+  output_semantics: [seq_embeddings, pos_embeddings, neg_embeddings]
+  objectives: [next_item_prediction, sequential_matching, pairwise_sequence_prediction]
+  model_families: [SASRec, GRU4Rec, NARM, HSTU, HLLM, TIGER]
+  aliases: [shared item embedding, tied sequence embedding, SASRec item embedding]
+  query_examples:
+    - "shared item embedding for SASRec positive negative sequences"
+    - "embed seq pos neg with one item table"
+composition:
+  requires: [seq_features, pos_features, neg_features]
+  produces: [seq_embeddings, pos_embeddings, neg_embeddings]
+  common_upstream: [raw_sequence_batch]
+  common_downstream: [sasrec_sequence_encoder, sasrec_pairwise_logits]
+  example_genome_fragment:
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [seq_features, pos_features, neg_features]
+      output_keys: [seq_embeddings, pos_embeddings, neg_embeddings]
+      vocab_size: "${vocab_size}"
+      embedding_dim: "${embedding_dim}"

@@ -1,0 +1,21 @@
+name: dien_interest_evolution
+category: sequence
+description: DIEN-style recurrent interest evolution with target-aware pooling.
+retrieval:
+  summary: Use this for the main DIEN interest extraction/evolution path.
+  use_when: Behavior histories should be encoded recurrently and conditioned on target embeddings.
+  avoid_when: Simple DIN attention without recurrent evolution is enough.
+  task_types: [ctr, ranking, sequence]
+  architecture_roles: [interest_evolution, target_attention, recurrent_encoder]
+  input_modalities: [history_embeddings, target_embeddings]
+  output_semantics: [interest_representation, auxiliary_loss]
+  objectives: [click_prediction, interest_modeling]
+  model_families: [DIEN]
+  aliases: [DIEN, interest evolution, AUGRU adapter]
+  query_examples: [DIEN interest evolution, target-aware GRU pooling]
+composition:
+  requires: [history_embeddings, target_embeddings]
+  produces: [interest_evolving, aux_loss]
+  common_upstream: [sequence_field_embedding, field_embedding]
+  common_downstream: [flatten_field_embeddings, concat_fusion, mlp_tower]
+  example_genome_fragment: "skill: dien_interest_evolution\nparams: {embedding_dim: 8, num_fields: 1}"

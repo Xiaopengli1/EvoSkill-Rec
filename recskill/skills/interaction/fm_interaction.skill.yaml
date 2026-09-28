@@ -1,0 +1,71 @@
+name: fm_interaction
+category: interaction
+description: Compute second-order factorization-machine interactions over field embeddings.
+inputs:
+  - name: field_embeddings
+    shape: "[batch_size, num_fields, embedding_dim]"
+    dtype: float32
+outputs:
+  - name: fm_output
+    shape: "[batch_size, 1]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+inductive_bias:
+  - second_order_feature_interactions
+failure_signatures:
+  - rank_not_3
+good_for:
+  - low-cost pairwise categorical feature interactions
+bad_for:
+  - high-order interactions without additional towers
+compatible_with:
+  upstream:
+    - field_embedding
+  downstream:
+    - concat_fusion
+    - binary_ctr_head
+constraints:
+  input_rank: 3
+cost:
+  parameters: 0
+  compute: "O(batch_size * num_fields * embedding_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - afm_interaction
+    - cin_interaction
+  can_be_augmented_by:
+    - attention_weighting
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: FM
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for low-cost second-order feature interactions over field embeddings in CTR/ranking models."
+  use_when:
+    - "You need pairwise feature interaction signal without enumerating all field pairs explicitly."
+    - "Input is unflattened field embeddings shaped [batch_size, num_fields, embedding_dim]."
+  avoid_when:
+    - "You need attention-weighted interactions; consider AFM-style skills."
+    - "You need higher-order or field-aware interactions."
+  task_types: [ctr, ranking]
+  architecture_roles: [interaction, second_order, factorization_machine]
+  input_modalities: [field_embeddings]
+  output_semantics: [interaction_logit, fm_output]
+  objectives: [click_prediction, sparse_feature_crossing]
+  model_families: [DeepFM, FM, AFM]
+  aliases: [FM, factorization machine, second order interaction, pairwise interaction]
+  query_examples:
+    - "second order interactions for CTR"
+    - "FM branch for sparse embeddings"
+composition:
+  requires: [field_embeddings]
+  produces: [fm_output]
+  common_upstream: [field_embedding]
+  common_downstream: [concat_fusion, binary_ctr_head]
+  example_genome_fragment:
+    skill: fm_interaction
+    params:
+      input_key: field_embeddings
+      output_key: fm_output

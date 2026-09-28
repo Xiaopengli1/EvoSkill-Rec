@@ -1,0 +1,73 @@
+name: field_embedding
+category: embedding
+description: Embed integer sparse feature fields into a dense field embedding tensor.
+inputs:
+  - name: sparse_features
+    shape: "[batch_size, num_fields]"
+    dtype: int64
+outputs:
+  - name: field_embeddings
+    shape: "[batch_size, num_fields, embedding_dim]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+inductive_bias:
+  - categorical_lookup
+  - shared_embedding_dimension
+failure_signatures:
+  - out_of_range_ids
+  - feature_count_mismatch
+good_for:
+  - sparse categorical CTR features
+bad_for:
+  - continuous-only feature sets without discretization
+compatible_with:
+  upstream:
+    - raw_sparse_feature_adapter
+  downstream:
+    - flatten_field_embeddings
+    - fm_interaction
+constraints:
+  ids_must_be_less_than_vocab_size: true
+  same_embedding_dim_per_field: true
+cost:
+  parameters: "sum(vocab_sizes) * embedding_dim"
+  compute: "O(batch_size * num_fields * embedding_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - pretrained_field_embedding
+  can_be_augmented_by:
+    - feature_hashing
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: EmbeddingLayer
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this when raw categorical field ids need to enter an embedding-based CTR, ranking, matching, or multitask model."
+  use_when:
+    - "The batch has integer sparse feature ids shaped [batch_size, num_fields]."
+    - "Downstream skills need dense field embeddings for FM, cross networks, MLP towers, or multitask experts."
+  avoid_when:
+    - "Inputs are already embedded dense tensors."
+    - "Each field needs a different embedding dimension."
+  task_types: [ctr, ranking, matching, multitask]
+  architecture_roles: [embedding, feature_adapter, sparse_lookup]
+  input_modalities: [sparse_ids, categorical_fields]
+  output_semantics: [field_embeddings]
+  objectives: [click_prediction, ranking_score, multitask_prediction]
+  model_families: [DeepFM, DCN, DIN, MMoE, WideDeep, AutoInt, FiBiNet]
+  aliases: [sparse embedding, categorical embedding, feature embedding, embedding table lookup]
+  query_examples:
+    - "embed sparse categorical fields for CTR"
+    - "turn feature ids into field embeddings"
+composition:
+  requires: [sparse_features]
+  produces: [field_embeddings]
+  common_upstream: [raw_feature_batch]
+  common_downstream: [flatten_field_embeddings, fm_interaction, din_target_attention]
+  example_genome_fragment:
+    skill: field_embedding
+    params:
+      vocab_sizes: "${vocab_sizes}"
+      embedding_dim: "${embedding_dim}"

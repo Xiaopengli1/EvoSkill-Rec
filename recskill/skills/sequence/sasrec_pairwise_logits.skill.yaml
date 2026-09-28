@@ -1,0 +1,79 @@
+name: sasrec_pairwise_logits
+category: head
+description: Dot SASRec sequence outputs with positive and negative item embeddings.
+inputs:
+  - name: sequence_output
+    shape: "[batch_size, seq_len, embedding_dim]"
+    dtype: float32
+  - name: pos_embeddings
+    shape: "[batch_size, seq_len, embedding_dim]"
+    dtype: float32
+  - name: neg_embeddings
+    shape: "[batch_size, seq_len, embedding_dim]"
+    dtype: float32
+outputs:
+  - name: pos_logits
+    shape: "[batch_size, seq_len]"
+    dtype: float32
+  - name: neg_logits
+    shape: "[batch_size, seq_len]"
+    dtype: float32
+task_types:
+  - matching
+  - sequence
+inductive_bias:
+  - pointwise_item_dot_product
+failure_signatures:
+  - embedding_shape_mismatch
+good_for:
+  - SASRec pairwise positive negative logits
+bad_for:
+  - sampled-softmax over full item catalog
+compatible_with:
+  upstream:
+    - sasrec_sequence_encoder
+    - shared_sequence_embedding
+  downstream:
+    - pairwise_sequence_loss
+constraints:
+  embedding_shapes_match: true
+cost:
+  parameters: 0
+  compute: "O(batch_size * seq_len * embedding_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - sampled_softmax_head
+  can_be_augmented_by:
+    - item_bias
+source:
+  file: torch_rechub/models/matching/sasrec.py
+  class_or_function: SASRec.forward pairwise logits
+  extraction_type: extracted
+retrieval:
+  summary: "Use this to score SASRec position-wise positive and negative item sequences by dot product."
+  use_when:
+    - "The model has sequence_output plus positive and negative item embeddings at each position."
+    - "The expected output contract is pos_logits and neg_logits shaped [batch_size, seq_len]."
+  avoid_when:
+    - "You need a single user-item score or in-batch negative matrix."
+  task_types: [matching, sequence]
+  architecture_roles: [head, pairwise_sequence_head, dot_product_head]
+  input_modalities: [sequence_output, item_embeddings]
+  output_semantics: [pos_logits, neg_logits]
+  objectives: [pairwise_sequence_prediction, next_item_prediction]
+  model_families: [SASRec]
+  aliases: [SASRec logits, pairwise logits, positive negative sequence head]
+  query_examples:
+    - "compute SASRec positive and negative logits"
+    - "pairwise sequence dot product head"
+composition:
+  requires: [sequence_output, pos_embeddings, neg_embeddings]
+  produces: [pos_logits, neg_logits]
+  common_upstream: [sasrec_sequence_encoder, shared_sequence_embedding]
+  common_downstream: [pairwise_sequence_loss]
+  example_genome_fragment:
+    skill: sasrec_pairwise_logits
+    params:
+      sequence_key: sequence_output
+      pos_key: pos_embeddings
+      neg_key: neg_embeddings

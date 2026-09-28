@@ -1,0 +1,55 @@
+name: multi_level_cgc
+skill_id: multi_level_cgc
+category: multitask
+description: Exact PLE multi-level Customized Gate Control stack.
+inputs:
+- name: shared_input
+  shape: '[batch_size, input_dim]'
+outputs:
+- name: task_representations
+  shape: '[batch_size, n_task, expert_dim]'
+task_types: &id001
+- multitask
+source:
+  file: torch_rechub/models/multi_task/ple.py
+  class_or_function: CGC
+  extraction_type: wrapped_exact
+retrieval:
+  summary: Use this for PLE's true multi-level shared/task expert extraction.
+  task_types:
+  - multitask
+  architecture_roles:
+  - multitask
+  - cgc
+  - expert_gate
+  input_modalities:
+  - shared_input
+  output_semantics:
+  - task_representations
+  model_families:
+  - PLE
+  aliases:
+  - CGC
+  - PLE gate
+  - progressive layered extraction
+  use_when:
+  - Use this for PLE's true multi-level shared/task expert extraction.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for PLE's true multi-level shared/task expert extraction.
+composition:
+  requires:
+  - shared_input
+  produces:
+  - task_representations
+  - ple_outputs
+  common_downstream:
+  - task_tower
+  - multitask_loss
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: multi_level_cgc
+    params: {}

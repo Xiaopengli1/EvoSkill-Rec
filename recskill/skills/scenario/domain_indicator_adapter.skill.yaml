@@ -1,0 +1,66 @@
+name: domain_indicator_adapter
+category: scenario
+description: Read a domain indicator tensor and expose it as a 1D domain id tensor.
+inputs:
+  - name: domain_indicator
+    shape: "[batch_size]"
+    dtype: int64
+outputs:
+  - name: domain_id
+    shape: "[batch_size]"
+    dtype: int64
+task_types:
+  - multi_domain
+  - ctr
+  - ranking
+inductive_bias:
+  - scenario_conditioning
+  - samplewise_domain_routing
+failure_signatures:
+  - domain_id_rank_mismatch
+  - domain_id_out_of_range
+good_for:
+  - multi-domain CTR and ranking models with a domain_indicator feature
+bad_for:
+  - models without explicit sample-level domain ids
+compatible_with:
+  upstream:
+    - raw_feature_batch
+  downstream:
+    - domain_select
+    - mmoe_gate
+    - ple_gate
+constraints:
+  domain_ids_are_zero_based: true
+source:
+  file: torch_rechub/models/multi_domain
+  class_or_function: domain_indicator forward pattern
+  extraction_type: extracted
+retrieval:
+  summary: "Use this to normalize x['domain_indicator'] for multi-domain recommendation genomes."
+  use_when:
+    - "The batch contains domain_indicator shaped [batch_size] or [batch_size, 1]."
+    - "Downstream skills need a standard domain_id key for scenario selection."
+  avoid_when:
+    - "Domain membership is latent and must be inferred by a router."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [scenario_adapter, domain_routing, feature_adapter]
+  input_modalities: [domain_ids, scenario_ids]
+  output_semantics: [domain_id]
+  objectives: [multi_domain_prediction, click_prediction, ranking_score]
+  model_families: [SharedBottom, MMOE, PLE, Star, PPNet, Sarnet, Hamur]
+  aliases: [domain indicator, scenario id, domain id, multi domain router]
+  query_examples:
+    - "normalize domain_indicator for multi-domain CTR"
+    - "scenario id adapter"
+composition:
+  requires: [domain_indicator]
+  produces: [domain_id]
+  common_upstream: [raw_feature_batch]
+  common_downstream: [domain_select, task_tower]
+  example_genome_fragment:
+    skill: domain_indicator_adapter
+    params:
+      input_key: domain_indicator
+      output_key: domain_id
+      num_domains: "${domain_num}"

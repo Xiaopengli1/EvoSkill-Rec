@@ -1,0 +1,21 @@
+name: senet_feature_gate
+category: interaction
+description: Reweight field embeddings with SENet-style feature gates.
+retrieval:
+  summary: Use this when feature fields need learned importance gating.
+  use_when: A model family such as FiBiNet or DSSM-SENET uses field recalibration.
+  avoid_when: The model must preserve raw embeddings exactly.
+  task_types: [ctr, ranking, matching]
+  architecture_roles: [feature_gate, senet_recalibration]
+  input_modalities: [field_embeddings]
+  output_semantics: [gated_embeddings]
+  objectives: [click_prediction, retrieval_scoring]
+  model_families: [FiBiNet, DSSM_SENET, FatDeepFFM]
+  aliases: [senet, feature gate, recalibration]
+  query_examples: [SENET feature gate, FiBiNet recalibration]
+composition:
+  requires: [field_embeddings]
+  produces: [gated_embeddings]
+  common_upstream: [field_embedding]
+  common_downstream: [bilinear_interaction, flatten_field_embeddings]
+  example_genome_fragment: "skill: senet_feature_gate\nparams: {num_fields: 8, reduction_ratio: 3}"

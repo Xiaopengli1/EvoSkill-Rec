@@ -1,0 +1,44 @@
+model_name: hstu_skillified
+task_type: generative
+
+inputs:
+  seq_features:
+    shape: [batch_size, seq_len]
+    dtype: int64
+  time_diffs:
+    shape: [batch_size, seq_len]
+    dtype: float32
+
+skills:
+  - id: item_embedding
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [seq_features]
+      output_keys: [seq_embeddings]
+      vocab_size: ${vocab_size}
+      embedding_dim: ${embedding_dim}
+      padding_idx: 0
+
+  - id: hstu_encoder
+    skill: hstu_sequence_encoder
+    params:
+      input_key: seq_embeddings
+      ids_key: seq_features
+      time_diffs_key: time_diffs
+      output_key: sequence_output
+      d_model: ${embedding_dim}
+      n_heads: ${n_heads}
+      n_layers: ${n_layers}
+      dqk: ${dqk}
+      dv: ${dv}
+      dropout: ${dropout}
+      max_seq_len: ${max_seq_len}
+
+  - id: lm_head
+    skill: sequence_lm_head
+    params:
+      input_key: sequence_output
+      output_key: logits
+      hidden_dim: ${embedding_dim}
+      vocab_size: ${vocab_size}
+      mode: all

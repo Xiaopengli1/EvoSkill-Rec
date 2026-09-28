@@ -1,0 +1,62 @@
+name: dense_feature_path
+skill_id: dense_feature_path
+category: utility
+description: Project dense numeric features into embedding slots and merge them with
+  sparse fields.
+inputs:
+- name: dense_values
+  shape: '[batch_size, num_dense]'
+outputs:
+- name: dense_embeddings
+  shape: '[batch_size, num_dense, embedding_dim]'
+task_types: &id001
+- ctr
+- ranking
+- multitask
+source:
+  file: torch_rechub/models/ranking/autoint.py
+  class_or_function: AutoInt dense_embeddings
+  extraction_type: reimplemented
+retrieval:
+  summary: Use this for AutoInt/BST dense-feature branches.
+  task_types:
+  - ctr
+  - ranking
+  - multitask
+  architecture_roles:
+  - adapter
+  - dense_feature_path
+  input_modalities:
+  - dense_values
+  output_semantics:
+  - field_embeddings
+  model_families:
+  - AutoInt
+  - BST
+  - DeepFM
+  - DCN
+  - WideDeep
+  aliases:
+  - dense feature path
+  - dense embedding adapter
+  use_when:
+  - Use this for AutoInt/BST dense-feature branches.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this for AutoInt/BST dense-feature branches.
+composition:
+  requires:
+  - dense_values
+  produces:
+  - dense_embeddings
+  - field_embeddings
+  common_downstream:
+  - flatten_field_embeddings
+  - autoint_attention
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: dense_feature_path
+    params: {}

@@ -1,0 +1,21 @@
+name: narm_session_encoder
+category: sequence
+description: NARM global-local session encoder.
+retrieval:
+  summary: Use this to encode a session with GRU hidden states and local attention.
+  use_when: Session-based matching needs both global final state and local attentive context.
+  avoid_when: A simple last-state GRU summary is sufficient.
+  task_types: [matching, sequence]
+  architecture_roles: [session_encoder, global_local_attention]
+  input_modalities: [sequence_embeddings, sequence_ids]
+  output_semantics: [user_embedding]
+  objectives: [session_recommendation]
+  model_families: [NARM]
+  aliases: [NARM encoder, session attention, neural attentive session]
+  query_examples: [NARM user tower, session global local attention]
+composition:
+  requires: [seq_embeddings, seq_features]
+  produces: [user_embedding]
+  common_upstream: [shared_sequence_embedding]
+  common_downstream: [candidate_dot_logits, dot_product_logits]
+  example_genome_fragment: "skill: narm_session_encoder\nparams: {embedding_dim: 8, hidden_dim: 8}"

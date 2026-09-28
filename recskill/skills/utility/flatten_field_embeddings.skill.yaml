@@ -1,0 +1,70 @@
+name: flatten_field_embeddings
+category: utility
+description: Flatten field embeddings from [B, F, D] to [B, F * D].
+inputs:
+  - name: field_embeddings
+    shape: "[batch_size, num_fields, embedding_dim]"
+    dtype: float32
+outputs:
+  - name: flat_embeddings
+    shape: "[batch_size, num_fields * embedding_dim]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+inductive_bias:
+  - field_order_preserving_flatten
+failure_signatures:
+  - rank_not_3
+good_for:
+  - preparing embedding tensors for MLP or cross networks
+bad_for:
+  - order-invariant set modeling
+compatible_with:
+  upstream:
+    - field_embedding
+  downstream:
+    - mlp_tower
+    - crossnet_v1
+constraints:
+  preserves_field_order: true
+cost:
+  parameters: 0
+  compute: "view/reshape"
+mutation_roles:
+  can_be_replaced_by:
+    - pooling_projection
+  can_be_augmented_by:
+    - field_dropout
+source:
+  file: torch_rechub/models/ranking/deepfm.py
+  class_or_function: DeepFM.forward input_deep flatten path
+  extraction_type: extracted
+retrieval:
+  summary: "Use this to convert field-wise embeddings into a flat vector for MLP, cross-network, or multitask expert inputs."
+  use_when:
+    - "The upstream tensor is shaped [batch_size, num_fields, embedding_dim]."
+    - "The downstream skill expects a 2D dense representation."
+  avoid_when:
+    - "Field order should be permutation-invariant."
+    - "The downstream operation expects unflattened pairwise field structure."
+  task_types: [ctr, ranking, matching, multitask]
+  architecture_roles: [utility, reshape, adapter]
+  input_modalities: [field_embeddings]
+  output_semantics: [flat_embeddings, dense_representation]
+  objectives: [feature_mixing, explicit_crossing, multitask_expert_input]
+  model_families: [DeepFM, DCN, MMoE, WideDeep, AutoInt]
+  aliases: [flatten embeddings, squeeze field embeddings, dense vector adapter]
+  query_examples:
+    - "prepare field embeddings for MLP"
+    - "flatten sparse embeddings for cross network"
+composition:
+  requires: [field_embeddings]
+  produces: [flat_embeddings]
+  common_upstream: [field_embedding, din_target_attention]
+  common_downstream: [mlp_tower, crossnet_v1, mmoe_gate]
+  example_genome_fragment:
+    skill: flatten_field_embeddings
+    params:
+      input_key: field_embeddings
+      output_key: flat_embeddings

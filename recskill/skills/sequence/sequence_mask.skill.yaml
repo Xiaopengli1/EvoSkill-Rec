@@ -1,0 +1,70 @@
+name: sequence_mask
+skill_id: sequence_mask
+category: sequence
+description: Build True-for-valid masks from padded sequence ids.
+inputs:
+- name: sequence_ids
+  shape: '[batch_size, ..., seq_len]'
+outputs:
+- name: sequence_mask
+  shape: '[batch_size, ..., seq_len]'
+  dtype: bool
+task_types: &id001
+- ctr
+- ranking
+- matching
+- sequence
+- generative
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: InputMask / EmbeddingLayer.input_mask
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this when sequence features use padding_idx=0 and downstream attention
+    needs masks.
+  task_types:
+  - ctr
+  - ranking
+  - matching
+  - sequence
+  - generative
+  architecture_roles:
+  - masking
+  - sequence_adapter
+  input_modalities:
+  - sequence_ids
+  output_semantics:
+  - sequence_mask
+  model_families:
+  - DIN
+  - DIEN
+  - SASRec
+  - HSTU
+  - HLLM
+  aliases:
+  - sequence mask
+  - input mask
+  - padding mask
+  use_when:
+  - Use this when sequence features use padding_idx=0 and downstream attention needs
+    masks.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this when sequence features use padding_idx=0 and downstream attention needs
+    masks.
+composition:
+  requires:
+  - sequence_ids
+  produces:
+  - sequence_mask
+  common_downstream:
+  - full_augru_evolution
+  - exact_leakyrelu_transformer_encoder
+  - hstu_sequence_encoder
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: sequence_mask
+    params: {}

@@ -1,0 +1,21 @@
+name: rqvae_quantization
+category: generative
+description: Encode, quantize, and reconstruct dense item features.
+retrieval:
+  summary: Use this for RQVAE-style semantic ID or residual quantization experiments.
+  use_when: Dense item features should be compressed into discrete code IDs.
+  avoid_when: The model only needs sequence next-item logits.
+  task_types: [generative, matching]
+  architecture_roles: [vector_quantizer, residual_quantization, reconstruction_head]
+  input_modalities: [dense_features]
+  output_semantics: [quantized, reconstruction, rqvae_loss]
+  objectives: [semantic_id_learning, reconstruction]
+  model_families: [RQVAE, TIGER]
+  aliases: [rqvae, vector quantizer, semantic id]
+  query_examples: [RQVAE quantization block]
+composition:
+  requires: [dense_input]
+  produces: [quantized, reconstruction, rqvae_loss]
+  common_upstream: [dense_feature_adapter]
+  common_downstream: [semantic_id_tokenizer, tiger_sequence_model]
+  example_genome_fragment: "skill: rqvae_quantization\nparams: {input_dim: 128, latent_dim: 32, num_codes: 256}"

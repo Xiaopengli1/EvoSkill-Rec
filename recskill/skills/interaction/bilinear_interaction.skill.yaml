@@ -1,0 +1,21 @@
+name: bilinear_interaction
+category: interaction
+description: Pairwise bilinear feature interaction embeddings.
+retrieval:
+  summary: Use this for FiBiNet-style bilinear crosses between feature fields.
+  use_when: Pairwise feature interactions should be transformed before multiplication.
+  avoid_when: Plain FM second-order sums are enough.
+  task_types: [ctr, ranking]
+  architecture_roles: [bilinear_cross, pairwise_interaction]
+  input_modalities: [field_embeddings]
+  output_semantics: [pairwise_embeddings]
+  objectives: [click_prediction]
+  model_families: [FiBiNet]
+  aliases: [bilinear, pairwise bilinear, fibinet interaction]
+  query_examples: [FiBiNet bilinear interaction]
+composition:
+  requires: [field_embeddings]
+  produces: [bilinear_interactions]
+  common_upstream: [field_embedding, senet_feature_gate]
+  common_downstream: [flatten_field_embeddings, mlp_tower]
+  example_genome_fragment: "skill: bilinear_interaction\nparams: {embedding_dim: 16, num_fields: 8}"

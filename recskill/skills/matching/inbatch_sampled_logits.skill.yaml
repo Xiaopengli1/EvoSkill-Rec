@@ -1,0 +1,21 @@
+name: inbatch_sampled_logits
+category: matching
+description: In-batch sampled retrieval logits with sampling-bias correction.
+retrieval:
+  summary: Use this for YoutubeSBC-style in-batch negative scoring.
+  use_when: Each batch item should serve as negatives for nearby users and sampling weights should debias logits.
+  avoid_when: Explicit positive/negative item candidate tensors are already provided.
+  task_types: [matching]
+  architecture_roles: [in_batch_negative_sampling, sampling_bias_correction]
+  input_modalities: [user_embedding, item_embedding, sample_weight]
+  output_semantics: [matching_logits]
+  objectives: [retrieval_scoring, in_batch_softmax]
+  model_families: [YoutubeSBC]
+  aliases: [SBC logits, in batch logits, sampling bias correction]
+  query_examples: [YoutubeSBC in-batch negative logits]
+composition:
+  requires: [user_embedding, item_embedding, sample_weight]
+  produces: [scores]
+  common_upstream: [mlp_tower]
+  common_downstream: [matching_loss]
+  example_genome_fragment: "skill: inbatch_sampled_logits\nparams: {user_key: user_embedding, item_key: item_embedding, sample_weight_key: sample_weight, n_neg: 3}"

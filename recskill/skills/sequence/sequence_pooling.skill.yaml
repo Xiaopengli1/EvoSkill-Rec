@@ -1,0 +1,21 @@
+name: sequence_pooling
+category: sequence
+description: Pool sequence embeddings into a fixed-size vector.
+retrieval:
+  summary: Use this for mean, sum, or last-valid pooling over item histories.
+  use_when: A sequence model needs a compact user/session representation.
+  avoid_when: The model requires token-level autoregressive outputs.
+  task_types: [ranking, matching, sequence, generative]
+  architecture_roles: [sequence_pooling, session_summary]
+  input_modalities: [sequence_embeddings]
+  output_semantics: [sequence_summary]
+  objectives: [sequential_matching, click_prediction]
+  model_families: [YoutubeDNN, GRU4Rec, STAMP]
+  aliases: [mean pooling, last pooling, sequence summary]
+  query_examples: [pool history embeddings, last valid item state]
+composition:
+  requires: [seq_embeddings]
+  produces: [sequence_summary]
+  common_upstream: [shared_sequence_embedding, gru_sequence_encoder]
+  common_downstream: [dot_product_logits, mlp_tower]
+  example_genome_fragment: "skill: sequence_pooling\nparams: {mode: mean}"

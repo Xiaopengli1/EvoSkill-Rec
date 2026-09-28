@@ -1,0 +1,21 @@
+name: normalize_embedding
+category: utility
+description: Normalize embeddings along the last dimension.
+retrieval:
+  summary: Use this to place user and item tower outputs in a cosine-similarity retrieval space.
+  use_when: Matching towers should produce L2-normalized retrieval embeddings.
+  avoid_when: Raw dot products without norm constraints are required.
+  task_types: [matching, sequence, ctr, ranking]
+  architecture_roles: [l2_normalization, cosine_space]
+  input_modalities: [dense_embeddings]
+  output_semantics: [normalized_embeddings]
+  objectives: [retrieval_scoring]
+  model_families: [DSSM, FaceBookDSSM, DSSM_SENET, YoutubeDNN, GRU4Rec, MIND, ComirecSA, ComirecDR]
+  aliases: [l2 normalize, normalize embedding, cosine normalization]
+  query_examples: [normalize two tower embeddings, L2 normalize item candidates]
+composition:
+  requires: [input_key]
+  produces: [normalized_embeddings]
+  common_upstream: [mlp_tower, shared_mlp_tower, field_embedding, shared_sequence_embedding]
+  common_downstream: [dot_product_logits, candidate_dot_logits]
+  example_genome_fragment: "skill: normalize_embedding\nparams: {input_key: user_raw, output_key: user_embedding}"

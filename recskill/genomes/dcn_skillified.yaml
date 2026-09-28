@@ -1,0 +1,55 @@
+model_name: dcn_skillified
+task_type: ctr
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+
+  - id: cross
+    skill: crossnet_v1
+    params:
+      input_key: flat_embeddings
+      output_key: cross_output
+      input_dim: ${flat_input_dim}
+      num_layers: ${n_cross_layers}
+
+  - id: deep_tower
+    skill: mlp_tower
+    params:
+      input_key: flat_embeddings
+      output_key: deep_output
+      input_dim: ${flat_input_dim}
+      hidden_dims: ${hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: false
+
+  - id: fusion
+    skill: concat_fusion
+    params:
+      input_keys: [cross_output, deep_output]
+      output_key: fused_representation
+
+  - id: head
+    skill: binary_ctr_head
+    params:
+      input_key: fused_representation
+      input_dim: ${fusion_dim}
+      output_key: logits
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

@@ -1,0 +1,77 @@
+name: mlp_tower
+category: tower
+description: Apply an MLP tower to a 2D representation tensor.
+inputs:
+  - name: input_key
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+outputs:
+  - name: output_key
+    shape: "[batch_size, hidden_dims[-1]]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+  - matching
+  - multitask
+inductive_bias:
+  - nonlinear_feature_mixing
+failure_signatures:
+  - input_dim_mismatch
+  - batchnorm_singleton_batch
+good_for:
+  - dense nonlinear towers
+bad_for:
+  - raw sparse ids without embedding
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+    - concat_fusion
+  downstream:
+    - concat_fusion
+    - binary_ctr_head
+constraints:
+  input_dim_static: true
+cost:
+  parameters: "sum(layer_in * layer_out for hidden layers)"
+  compute: "O(batch_size * parameters)"
+mutation_roles:
+  can_be_replaced_by:
+    - residual_tower
+  can_be_augmented_by:
+    - dropout
+    - normalization
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: MLP
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this as a configurable dense neural tower for nonlinear feature mixing, task towers, or branch transformations."
+  use_when:
+    - "A 2D dense representation needs hidden layers, activation, batch norm, and dropout."
+    - "You need a deep branch after flattening embeddings."
+  avoid_when:
+    - "The input is raw sparse ids; embed first."
+    - "Batch size is one in training mode with BatchNorm enabled."
+  task_types: [ctr, ranking, matching, multitask]
+  architecture_roles: [tower, dense_mlp, nonlinear_projection]
+  input_modalities: [dense_representation, flat_embeddings, task_representation]
+  output_semantics: [deep_output, logits, hidden_representation]
+  objectives: [nonlinear_feature_mixing, representation_learning]
+  model_families: [DeepFM, DCN, DIN, MMoE, DSSM, YoutubeDNN]
+  aliases: [MLP, deep tower, dense tower, feed forward network]
+  query_examples:
+    - "add nonlinear tower after flattened embeddings"
+    - "dense MLP branch for CTR model"
+composition:
+  requires: [input_key]
+  produces: [output_key]
+  common_upstream: [flatten_field_embeddings, concat_fusion, mmoe_gate]
+  common_downstream: [concat_fusion, binary_ctr_head, sigmoid_prediction]
+  example_genome_fragment:
+    skill: mlp_tower
+    params:
+      input_key: flat_embeddings
+      output_key: deep_output
+      input_dim: "${input_dim}"
+      hidden_dims: [64, 32]

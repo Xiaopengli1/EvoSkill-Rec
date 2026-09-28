@@ -1,0 +1,68 @@
+name: named_feature_dict_adapter
+skill_id: named_feature_dict_adapter
+category: utility
+description: Extract ordered tensors from Torch-RecHub named feature dictionaries.
+inputs:
+- name: features
+  shape: dict[str, tensor]
+outputs:
+- name: field_ids
+  shape: '[batch_size, num_fields]'
+task_types: &id001
+- ctr
+- ranking
+- matching
+- multitask
+- sequence
+- generative
+source:
+  file: torch_rechub/models
+  class_or_function: model forward named feature dict input
+  extraction_type: reusable_adapter
+retrieval:
+  summary: Use this when a Torch-RecHub model expects x[name] feature dictionaries.
+  task_types:
+  - ctr
+  - ranking
+  - matching
+  - multitask
+  - sequence
+  - generative
+  architecture_roles:
+  - adapter
+  - input_adapter
+  input_modalities:
+  - named_features
+  output_semantics:
+  - field_ids
+  model_families:
+  - DeepFM
+  - DCN
+  - DIN
+  - DSSM
+  - MMOE
+  - PLE
+  - AITM
+  aliases:
+  - named feature dict
+  - torch rechub input adapter
+  use_when:
+  - Use this when a Torch-RecHub model expects x[name] feature dictionaries.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this when a Torch-RecHub model expects x[name] feature dictionaries.
+composition:
+  requires:
+  - features
+  produces:
+  - field_ids
+  common_downstream:
+  - field_embedding
+  - sequence_field_embedding
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: named_feature_dict_adapter
+    params: {}

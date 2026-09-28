@@ -1,0 +1,76 @@
+model_name: esmm_skillified
+task_type: multitask
+
+inputs:
+  user_features:
+    shape: [batch_size, num_user_fields]
+    dtype: int64
+  item_features:
+    shape: [batch_size, num_item_fields]
+    dtype: int64
+
+skills:
+  - id: user_embedding
+    skill: field_embedding
+    params:
+      input_key: user_features
+      output_key: user_embeddings
+      vocab_sizes: ${user_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_user
+    skill: flatten_field_embeddings
+    params:
+      input_key: user_embeddings
+      output_key: user_flat
+
+  - id: item_embedding
+    skill: field_embedding
+    params:
+      input_key: item_features
+      output_key: item_embeddings
+      vocab_sizes: ${item_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_item
+    skill: flatten_field_embeddings
+    params:
+      input_key: item_embeddings
+      output_key: item_flat
+
+  - id: tower_input
+    skill: concat_fusion
+    params:
+      input_keys: [user_flat, item_flat]
+      output_key: tower_input
+
+  - id: cvr_tower
+    skill: mlp_tower
+    params:
+      input_key: tower_input
+      output_key: cvr_logit
+      input_dim: ${tower_input_dim}
+      hidden_dims: ${cvr_hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: true
+
+  - id: ctr_tower
+    skill: mlp_tower
+    params:
+      input_key: tower_input
+      output_key: ctr_logit
+      input_dim: ${tower_input_dim}
+      hidden_dims: ${ctr_hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: true
+
+  - id: chain
+    skill: esmm_chain_head
+    params:
+      ctr_key: ctr_logit
+      cvr_key: cvr_logit
+      output_key: task_outputs
+      inputs_are_logits: true
+      output_order: [cvr, ctr, ctcvr]

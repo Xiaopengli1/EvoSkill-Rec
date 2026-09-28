@@ -1,0 +1,63 @@
+name: dien_auxiliary_interest_loss
+skill_id: dien_auxiliary_interest_loss
+category: loss
+description: DIEN next-step positive/negative auxiliary interest loss.
+inputs:
+- name: interest_sequence
+  shape: '[batch_size, seq_len, embedding_dim]'
+- name: positive_sequence_embeddings
+  shape: '[batch_size, seq_len, embedding_dim]'
+- name: negative_sequence_embeddings
+  shape: '[batch_size, seq_len, embedding_dim]'
+outputs:
+- name: aux_loss
+  shape: '[]'
+task_types: &id001
+- ctr
+- ranking
+- sequence
+source:
+  file: torch_rechub/models/ranking/dien.py
+  class_or_function: DIEN.auxiliary
+  extraction_type: reimplemented_exact
+retrieval:
+  summary: Use this to preserve DIEN's auxiliary next-behavior supervision.
+  task_types:
+  - ctr
+  - ranking
+  - sequence
+  architecture_roles:
+  - loss
+  - auxiliary_loss
+  input_modalities:
+  - interest_sequence
+  - positive_sequence_embeddings
+  - negative_sequence_embeddings
+  output_semantics:
+  - aux_loss
+  model_families:
+  - DIEN
+  aliases:
+  - DIEN auxiliary loss
+  - negative history loss
+  use_when:
+  - Use this to preserve DIEN's auxiliary next-behavior supervision.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this to preserve DIEN's auxiliary next-behavior supervision.
+composition:
+  requires:
+  - interest_sequence
+  - positive_sequence_embeddings
+  - negative_sequence_embeddings
+  produces:
+  - aux_loss
+  common_upstream:
+  - context
+  common_downstream:
+  - context
+  example_genome_fragment:
+    skill: dien_auxiliary_interest_loss
+    params: {}

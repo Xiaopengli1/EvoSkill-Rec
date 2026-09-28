@@ -1,0 +1,21 @@
+name: additive_fusion
+category: utility
+description: Sum multiple branch tensors.
+retrieval:
+  summary: Use this to combine logits or residual tensors by addition.
+  use_when: Several branches produce same-shaped outputs that should be added.
+  avoid_when: Branches should be concatenated and learned through a tower.
+  task_types: [ctr, ranking, matching, multitask, generative]
+  architecture_roles: [branch_fusion, residual_add, logit_sum]
+  input_modalities: [branch_tensors]
+  output_semantics: [summed_representation]
+  objectives: [click_prediction, representation_fusion]
+  model_families: [WideDeep, DeepFM, DCN]
+  aliases: [sum fusion, additive fusion, residual add]
+  query_examples: [sum wide and deep logits, residual addition]
+composition:
+  requires: [branch_outputs]
+  produces: [fused_sum]
+  common_upstream: [linear_logit, mlp_tower, binary_ctr_head]
+  common_downstream: [sigmoid_prediction, bce_loss]
+  example_genome_fragment: "skill: additive_fusion\nparams: {input_keys: [wide_logit, deep_logit], output_key: logits}"

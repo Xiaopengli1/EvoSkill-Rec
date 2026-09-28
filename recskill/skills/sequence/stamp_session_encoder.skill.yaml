@@ -1,0 +1,21 @@
+name: stamp_session_encoder
+category: sequence
+description: STAMP short-term attention and memory-priority session encoder.
+retrieval:
+  summary: Use this for STAMP-style session representations.
+  use_when: Session matching should combine mean memory, attentive memory, and last-item priority.
+  avoid_when: Recurrent evolution or Transformer encoding is required.
+  task_types: [matching, sequence]
+  architecture_roles: [session_encoder, short_term_attention]
+  input_modalities: [sequence_embeddings, sequence_ids]
+  output_semantics: [user_embedding]
+  objectives: [session_recommendation]
+  model_families: [STAMP]
+  aliases: [STAMP encoder, short term attention, memory priority]
+  query_examples: [STAMP user tower, short term session encoder]
+composition:
+  requires: [seq_embeddings, seq_features]
+  produces: [user_embedding]
+  common_upstream: [shared_sequence_embedding]
+  common_downstream: [candidate_dot_logits, dot_product_logits]
+  example_genome_fragment: "skill: stamp_session_encoder\nparams: {embedding_dim: 8}"

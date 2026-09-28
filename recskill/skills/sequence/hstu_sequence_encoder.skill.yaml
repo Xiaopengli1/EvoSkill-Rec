@@ -1,0 +1,21 @@
+name: hstu_sequence_encoder
+category: sequence
+description: HSTU block for sequential transduction.
+retrieval:
+  summary: Use this for HSTU-style generative or sequential recommendation.
+  use_when: A genome needs HSTU causal sequence modeling with optional time diffs.
+  avoid_when: A simple pooling or GRU encoder is sufficient.
+  task_types: [generative, sequence, matching]
+  architecture_roles: [hstu_encoder, generative_sequence_encoder]
+  input_modalities: [sequence_embeddings, sequence_ids]
+  output_semantics: [sequence_output]
+  objectives: [next_item_prediction, sequential_matching]
+  model_families: [HSTU]
+  aliases: [hstu, sequential transduction, generative encoder]
+  query_examples: [HSTU sequence encoder]
+composition:
+  requires: [seq_embeddings]
+  produces: [sequence_output]
+  common_upstream: [shared_sequence_embedding]
+  common_downstream: [sequence_lm_head]
+  example_genome_fragment: "skill: hstu_sequence_encoder\nparams: {d_model: 64, n_heads: 2, n_layers: 2}"

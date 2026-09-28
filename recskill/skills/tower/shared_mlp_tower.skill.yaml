@@ -1,0 +1,21 @@
+name: shared_mlp_tower
+category: tower
+description: Apply one shared MLP tower to multiple dense inputs.
+retrieval:
+  summary: Use this when positive and negative item branches should share the same tower weights.
+  use_when: Several same-shaped representations should pass through one shared MLP.
+  avoid_when: Each branch should learn independent parameters.
+  task_types: [matching, ctr, ranking]
+  architecture_roles: [shared_tower, item_tower]
+  input_modalities: [dense_representation]
+  output_semantics: [tower_embeddings]
+  objectives: [retrieval_scoring]
+  model_families: [FaceBookDSSM]
+  aliases: [shared MLP, shared tower, item tower reuse]
+  query_examples: [shared item tower for positive and negative samples]
+composition:
+  requires: [input_keys]
+  produces: [output_keys]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [normalize_embedding, dot_product_logits]
+  example_genome_fragment: "skill: shared_mlp_tower\nparams: {input_keys: [pos_flat, neg_flat], output_keys: [pos_raw, neg_raw], input_dim: 16, hidden_dims: [8]}"

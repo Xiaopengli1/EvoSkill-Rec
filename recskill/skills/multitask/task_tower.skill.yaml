@@ -1,0 +1,70 @@
+name: task_tower
+category: multitask
+description: Project task-specific representations to task outputs.
+inputs:
+  - name: task_representations
+    shape: "[batch_size, n_task, input_dim]"
+    dtype: float32
+outputs:
+  - name: task_outputs
+    shape: "[batch_size, n_task]"
+    dtype: float32
+task_types:
+  - multitask
+inductive_bias:
+  - task_specific_heads
+failure_signatures:
+  - task_count_mismatch
+  - input_dim_mismatch
+good_for:
+  - MMoE and shared-bottom task heads
+bad_for:
+  - sequence pairwise logits
+compatible_with:
+  upstream:
+    - mmoe_gate
+  downstream:
+    - multitask_loss
+constraints:
+  len_task_types_matches_n_task: true
+cost:
+  parameters: "sum(task_tower_mlp_parameters)"
+  compute: "O(batch_size * task_tower_mlp_parameters)"
+mutation_roles:
+  can_be_replaced_by:
+    - task_tower_with_calibration
+  can_be_augmented_by:
+    - uncertainty_weighting
+source:
+  file: torch_rechub/models/multi_task/mmoe.py
+  class_or_function: MMOE towers and PredictionLayer
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this to turn task-specific representations into one output per task with task-specific towers."
+  use_when:
+    - "Upstream produced [batch_size, n_task, input_dim] task representations."
+    - "Each task needs its own MLP and prediction activation."
+  avoid_when:
+    - "The model has only one binary task; use binary_ctr_head."
+    - "Tasks require chained probabilities like ESMM without a chain head."
+  task_types: [multitask]
+  architecture_roles: [multitask, task_head, task_tower]
+  input_modalities: [task_representations]
+  output_semantics: [task_outputs]
+  objectives: [multitask_prediction, classification_and_regression]
+  model_families: [MMoE, SharedBottom, PLE, ESMM, AITM]
+  aliases: [task tower, multitask head, per-task MLP, task-specific head]
+  query_examples:
+    - "task-specific towers for multitask outputs"
+    - "convert MMoE task representations to predictions"
+composition:
+  requires: [task_representations]
+  produces: [task_outputs]
+  common_upstream: [mmoe_gate, shared_bottom]
+  common_downstream: [multitask_loss, metric_evaluation]
+  example_genome_fragment:
+    skill: task_tower
+    params:
+      input_key: task_representations
+      input_dim: "${expert_output_dim}"
+      task_types: "${task_types}"

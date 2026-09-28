@@ -1,0 +1,74 @@
+name: crossnet_v1
+category: interaction
+description: Apply DCN v1 explicit cross layers to a flattened representation.
+inputs:
+  - name: flat_embeddings
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+outputs:
+  - name: cross_output
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+inductive_bias:
+  - bounded_degree_explicit_crosses
+failure_signatures:
+  - input_dim_mismatch
+  - rank_not_2
+good_for:
+  - explicit cross features in CTR models
+bad_for:
+  - sequence-only recommendation without tabular fields
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+  downstream:
+    - concat_fusion
+    - binary_ctr_head
+constraints:
+  input_dim_static: true
+cost:
+  parameters: "num_layers * (input_dim + input_dim)"
+  compute: "O(batch_size * input_dim * num_layers)"
+mutation_roles:
+  can_be_replaced_by:
+    - crossnet_v2
+    - crossnet_mix
+  can_be_augmented_by:
+    - mlp_tower
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: CrossNetwork
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for DCN v1 explicit bounded-degree feature crosses over a flat dense representation."
+  use_when:
+    - "You want explicit cross features in a CTR/ranking model."
+    - "The input is already flattened to [batch_size, input_dim]."
+  avoid_when:
+    - "Input is still [batch_size, num_fields, embedding_dim]; flatten it first."
+    - "You want matrix-vector cross layers from DCNv2."
+  task_types: [ctr, ranking]
+  architecture_roles: [interaction, explicit_cross, cross_network]
+  input_modalities: [flat_embeddings, dense_representation]
+  output_semantics: [cross_output]
+  objectives: [explicit_feature_crossing, click_prediction]
+  model_families: [DCN, EDCN]
+  aliases: [DCN cross network, cross layer, explicit cross, crossnet v1]
+  query_examples:
+    - "explicit feature crossing for DCN"
+    - "cross network branch for CTR"
+composition:
+  requires: [flat_embeddings]
+  produces: [cross_output]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [concat_fusion, binary_ctr_head]
+  example_genome_fragment:
+    skill: crossnet_v1
+    params:
+      input_key: flat_embeddings
+      output_key: cross_output
+      input_dim: "${flat_input_dim}"
+      num_layers: 2

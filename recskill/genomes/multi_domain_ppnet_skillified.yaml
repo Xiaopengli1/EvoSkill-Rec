@@ -1,0 +1,71 @@
+model_name: multi_domain_ppnet_skillified
+task_type: multi_domain
+
+inputs:
+  id_features:
+    shape: [batch_size, num_id_fields]
+    dtype: int64
+  agnostic_features:
+    shape: [batch_size, num_agnostic_fields]
+    dtype: int64
+  domain_indicator:
+    shape: [batch_size]
+    dtype: int64
+
+skills:
+  - id: domain_adapter
+    skill: domain_indicator_adapter
+    params:
+      input_key: domain_indicator
+      output_key: domain_id
+      num_domains: ${domain_num}
+
+  - id: id_embedding
+    skill: field_embedding
+    params:
+      input_key: id_features
+      output_key: id_embeddings
+      vocab_sizes: ${id_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_id
+    skill: flatten_field_embeddings
+    params:
+      input_key: id_embeddings
+      output_key: id_flat
+
+  - id: agnostic_embedding
+    skill: field_embedding
+    params:
+      input_key: agnostic_features
+      output_key: agnostic_embeddings
+      vocab_sizes: ${agnostic_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_agnostic
+    skill: flatten_field_embeddings
+    params:
+      input_key: agnostic_embeddings
+      output_key: agnostic_flat
+
+  - id: gate_input
+    skill: concat_fusion
+    params:
+      input_keys: [id_flat, agnostic_flat]
+      output_key: gate_input
+
+  - id: ppnet_towers
+    skill: ppnet_domain_towers
+    params:
+      input_key: gate_input
+      output_key: domain_outputs
+      input_dim: ${input_dim}
+      domain_num: ${domain_num}
+      fcn_dims: ${fcn_dims}
+
+  - id: domain_select
+    skill: domain_select
+    params:
+      input_key: domain_outputs
+      domain_key: domain_id
+      output_key: prediction

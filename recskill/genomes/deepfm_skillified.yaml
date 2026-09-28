@@ -1,0 +1,60 @@
+model_name: deepfm_skillified
+task_type: ctr
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+  labels:
+    shape: [batch_size]
+    dtype: float32
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+
+  - id: linear
+    skill: linear_logit
+    params:
+      input_key: flat_embeddings
+      output_key: linear_logit
+      input_dim: ${flat_input_dim}
+
+  - id: fm
+    skill: fm_interaction
+
+  - id: deep_tower
+    skill: mlp_tower
+    params:
+      input_key: flat_embeddings
+      output_key: deep_logit
+      input_dim: ${flat_input_dim}
+      hidden_dims: ${hidden_dims}
+      dropout: 0.2
+      activation: relu
+      output_layer: true
+
+  - id: fusion
+    skill: additive_fusion
+    params:
+      input_keys: [linear_logit, fm_output, deep_logit]
+      output_key: logits
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction
+
+  - id: loss
+    skill: bce_loss
+    params:
+      logits_key: logits
+      labels_key: labels
+      output_key: loss

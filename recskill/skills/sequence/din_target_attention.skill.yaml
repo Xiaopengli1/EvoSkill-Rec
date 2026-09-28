@@ -1,0 +1,79 @@
+name: din_target_attention
+category: sequence
+description: Pool behavior history embeddings using target-aware DIN attention.
+inputs:
+  - name: history_embeddings
+    shape: "[batch_size, num_fields, seq_len, embedding_dim]"
+    dtype: float32
+  - name: target_embeddings
+    shape: "[batch_size, num_fields, embedding_dim]"
+    dtype: float32
+outputs:
+  - name: attention_pooling
+    shape: "[batch_size, num_fields, embedding_dim]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+  - sequence
+inductive_bias:
+  - target_conditioned_interest_pooling
+failure_signatures:
+  - history_target_field_mismatch
+  - embedding_dim_mismatch
+good_for:
+  - click prediction with target-conditioned behavior histories
+bad_for:
+  - target-free sequence summarization
+compatible_with:
+  upstream:
+    - sequence_field_embedding
+    - field_embedding
+  downstream:
+    - flatten_field_embeddings
+    - mlp_tower
+constraints:
+  history_and_target_fields_align: true
+cost:
+  parameters: "num_fields * activation_unit_mlp_parameters"
+  compute: "O(batch_size * num_fields * seq_len * embedding_dim)"
+mutation_roles:
+  can_be_replaced_by:
+    - target_attention
+    - transformer_sequence_encoder
+  can_be_augmented_by:
+    - sequence_masking
+source:
+  file: torch_rechub/models/ranking/din.py
+  class_or_function: ActivationUnit
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this to compute target-aware user interest from behavior history, as in DIN."
+  use_when:
+    - "A target item/ad embedding should attend over behavior history embeddings."
+    - "CTR prediction depends on how relevant the history is to the current target."
+  avoid_when:
+    - "No target embedding is available."
+    - "You need causal next-item sequence encoding; use sasrec_sequence_encoder."
+  task_types: [ctr, ranking, sequence]
+  architecture_roles: [sequence, target_attention, interest_pooling]
+  input_modalities: [history_embeddings, target_embeddings]
+  output_semantics: [attention_pooling, user_interest]
+  objectives: [target_conditioned_interest, click_prediction]
+  model_families: [DIN, DIEN, BST]
+  aliases: [DIN attention, activation unit, target attention, interest pooling]
+  query_examples:
+    - "target attention over user behavior history"
+    - "DIN activation unit for CTR"
+composition:
+  requires: [history_embeddings, target_embeddings]
+  produces: [attention_pooling]
+  common_upstream: [sequence_field_embedding, field_embedding]
+  common_downstream: [flatten_field_embeddings, concat_fusion, mlp_tower]
+  example_genome_fragment:
+    skill: din_target_attention
+    params:
+      history_key: history_embeddings
+      target_key: target_embeddings
+      embedding_dim: "${embedding_dim}"
+      num_fields: "${num_history_fields}"

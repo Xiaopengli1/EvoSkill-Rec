@@ -1,0 +1,21 @@
+name: target_sequence_attention
+category: sequence
+description: Target-conditioned attention pooling over a behavior sequence.
+retrieval:
+  summary: Use this when a target item should attend over user history.
+  use_when: DIN, DIEN, BST, or STAMP-like target-history matching is needed.
+  avoid_when: The task has no target item at scoring time.
+  task_types: [ranking, matching, sequence]
+  architecture_roles: [target_attention, session_attention]
+  input_modalities: [sequence_embeddings, target_embedding]
+  output_semantics: [attention_pooling]
+  objectives: [click_prediction, sequential_matching]
+  model_families: [DIN, DIEN, BST, STAMP, NARM]
+  aliases: [target attention, history attention, session attention]
+  query_examples: [target item attends to history]
+composition:
+  requires: [history_embeddings, target_embedding]
+  produces: [attention_pooling]
+  common_upstream: [sequence_field_embedding, shared_sequence_embedding]
+  common_downstream: [concat_fusion, mlp_tower, dot_product_logits]
+  example_genome_fragment: "skill: target_sequence_attention\nparams: {embedding_dim: 16}"

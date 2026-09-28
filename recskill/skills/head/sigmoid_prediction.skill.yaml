@@ -1,0 +1,70 @@
+name: sigmoid_prediction
+category: head
+description: Apply sigmoid to logits and squeeze the final singleton dimension for CTR-style outputs.
+inputs:
+  - name: logits
+    shape: "[batch_size, 1]"
+    dtype: float32
+outputs:
+  - name: prediction
+    shape: "[batch_size]"
+    dtype: float32
+task_types:
+  - ctr
+  - ranking
+inductive_bias:
+  - binary_probability_output
+failure_signatures:
+  - logits_rank_mismatch
+good_for:
+  - aligning skill graph logits with original CTR model output shape
+bad_for:
+  - multi-class or pairwise sequence logits
+compatible_with:
+  upstream:
+    - binary_ctr_head
+    - mlp_tower
+  downstream:
+    - bce_loss
+constraints:
+  binary_output: true
+cost:
+  parameters: 0
+  compute: "O(batch_size)"
+mutation_roles:
+  can_be_replaced_by:
+    - calibration_layer
+  can_be_augmented_by:
+    - temperature_scaling
+source:
+  file: torch_rechub/models/ranking/dcn.py
+  class_or_function: DCN.forward sigmoid squeeze
+  extraction_type: extracted
+retrieval:
+  summary: "Use this when a genome should match original CTR models that return squeezed probabilities instead of raw logits."
+  use_when:
+    - "The downstream contract expects [batch_size] probabilities."
+    - "A binary CTR head has already produced raw logits."
+  avoid_when:
+    - "Training loss should consume raw logits directly."
+    - "The task has multiple heads or pairwise logits."
+  task_types: [ctr, ranking]
+  architecture_roles: [head, probability_adapter, output_adapter]
+  input_modalities: [logits]
+  output_semantics: [prediction, probabilities]
+  objectives: [shape_alignment, click_probability]
+  model_families: [DCN, DIN, WideDeep, DeepFM]
+  aliases: [sigmoid output, probability adapter, prediction squeeze]
+  query_examples:
+    - "make logits match original CTR output shape"
+    - "convert binary logits to probabilities"
+composition:
+  requires: [logits]
+  produces: [prediction]
+  common_upstream: [binary_ctr_head, mlp_tower]
+  common_downstream: [metric_evaluation]
+  example_genome_fragment:
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

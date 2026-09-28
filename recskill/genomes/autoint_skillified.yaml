@@ -1,0 +1,74 @@
+model_name: autoint_skillified
+task_type: ctr
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten_base
+    skill: flatten_field_embeddings
+    params:
+      input_key: field_embeddings
+      output_key: flat_embeddings
+
+  - id: linear
+    skill: linear_logit
+    params:
+      input_key: flat_embeddings
+      output_key: linear_logit
+      input_dim: ${flat_input_dim}
+
+  - id: autoint_attention
+    skill: autoint_attention
+    params:
+      input_key: field_embeddings
+      output_key: attention_embeddings
+      embedding_dim: ${embedding_dim}
+      num_layers: ${num_layers}
+      num_heads: ${num_heads}
+      dropout: 0.0
+      residual: true
+
+  - id: flatten_attention
+    skill: flatten_field_embeddings
+    params:
+      input_key: attention_embeddings
+      output_key: attention_flat
+
+  - id: attention_logit
+    skill: binary_ctr_head
+    params:
+      input_key: attention_flat
+      input_dim: ${flat_input_dim}
+      output_key: attention_logit
+
+  - id: deep_tower
+    skill: mlp_tower
+    params:
+      input_key: flat_embeddings
+      output_key: deep_logit
+      input_dim: ${flat_input_dim}
+      hidden_dims: ${hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: true
+
+  - id: fusion
+    skill: additive_fusion
+    params:
+      input_keys: [linear_logit, attention_logit, deep_logit]
+      output_key: logits
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

@@ -1,0 +1,116 @@
+experiment_name: ctr_amazon_beauty_deepfm_evolution
+output_dir: outputs/evolution/ctr_amazon_beauty_deepfm
+memory_path:
+write_metadata_files: true
+write_summary_json: true
+write_evolution_memory: true
+write_code_space_diagnostics: false
+write_survivor_artifacts: true
+survivor_artifacts_dir: survivors
+
+dataset:
+  name: amazon_beauty_ctr
+  type: amazon_ctr
+  path: examples/ranking/data/amazon-beauty/amazon_beauty_datasets.csv
+  categorical_cols: [user_id, item_id]
+  label_col: label
+  timestamp_col: time
+  temporal_split: true
+  split_ratio: [0.7, 0.1, 0.2]
+
+genome:
+  template: deepfm
+  embedding_dim: 16
+  hidden_dims: [256, 128, 64]
+  dropout: 0.2
+  activation: relu
+
+training:
+  epoch: 2
+  learning_rate: 0.001
+  batch_size: 8192
+  weight_decay: 0.0003
+  device: cuda:0
+  seed: 2022
+  num_workers: 0
+  earlystop_patience: 2
+  objective_metric: auc
+  min_delta: 0.0
+  loss_key: loss
+  logits_key: logits
+  prediction_key: prediction
+
+evolution:
+  enabled: true
+  rounds: 25
+  candidate_budget: 8
+  code_space_probability: 0.375
+  adaptive_candidate_budget:
+    enabled: true
+    stagnation_patience: 2
+    min_improvement: 0.001
+    base_code_candidates: 3
+    code_step: 1
+    max_code_candidates: 4
+    min_skill_candidates: 4
+    reset_on_improvement: true
+    cooldown_code_step: 1
+  strategy: skill_library
+  failure_modes: [high_order_interaction_underfitting]
+  keep_top_k: 3
+  survivor_top_k: 3
+  deduplicate_architectures: true
+  deduplicate_against_memory: true
+  code_space:
+    provider: creative_command
+    command:
+    planner_command: python tools/code_space_llm_provider.py --mode planner
+    synthesizer_command: python tools/code_space_llm_provider.py --mode synthesizer
+    max_retries: 1
+    proposals_per_round: 3
+    sketches_per_round: 12
+    diversity_lanes: [interaction, routing, fusion, embedding, tower, sequence]
+    structural_scopes: [macro]
+    scope_mix_strategy: sequential
+    macro_requires_live_provider: true
+    require_active_provider: false
+    reuse_promoted_generated_skills: true
+    reuse_promoted_code_skills: false
+    allow_fallback_templates: false
+    promotion_policy: survivor
+  templates:
+    - name: add_crossnet_mix
+      num_layers: 3
+      low_rank: 8
+      num_experts: 4
+      evolution_space: skill_space
+      operation: add
+    - name: add_afm_attention
+      attention_dim: 96
+      evolution_space: skill_space
+      operation: add
+    - name: add_crossnet_v2
+      num_layers: 3
+      evolution_space: skill_space
+      operation: add
+    - name: replace_fm_with_field_sum
+      evolution_space: skill_space
+      operation: replace
+    - name: remove_fm
+      evolution_space: skill_space
+      operation: replace
+    - name: hybridize_crossnet_afm
+      num_layers: 2
+      attention_dim: 64
+      evolution_space: skill_space
+      operation: hybridize
+    - name: add_autoint_attention
+      num_layers: 2
+      num_heads: 4
+      dropout: 0.1
+      evolution_space: skill_space
+      operation: add
+    - name: specialize_senet_fm
+      reduction_ratio: 2
+      evolution_space: skill_space
+      operation: specialize

@@ -1,0 +1,21 @@
+name: multi_interest_extractor
+category: sequence
+description: Extract multiple interest vectors from a behavior sequence.
+retrieval:
+  summary: Use this for MIND and ComiRec-style multi-interest retrieval.
+  use_when: A user can be represented by several candidate interest embeddings.
+  avoid_when: A single deterministic user tower is required.
+  task_types: [matching, sequence]
+  architecture_roles: [multi_interest, capsule_routing, self_attention_interest]
+  input_modalities: [sequence_embeddings]
+  output_semantics: [multi_interest_embeddings]
+  objectives: [multi_interest_matching, sequential_matching]
+  model_families: [MIND, ComirecSA, ComirecDR, SINE]
+  aliases: [multi interest, capsule, comirec, mind]
+  query_examples: [MIND capsule interests, ComiRec self attention interests]
+composition:
+  requires: [seq_embeddings]
+  produces: [multi_interest_embeddings]
+  common_upstream: [shared_sequence_embedding]
+  common_downstream: [dot_product_logits]
+  example_genome_fragment: "skill: multi_interest_extractor\nparams: {embedding_dim: 16, seq_len: 50, interest_num: 4}"

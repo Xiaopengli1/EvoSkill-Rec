@@ -1,0 +1,21 @@
+name: crossnet_v2
+category: interaction
+description: DCNv2 full-rank explicit feature cross network.
+retrieval:
+  summary: Use this for DCNv2-style high-order explicit crosses on flat embeddings.
+  use_when: A ranking model needs explicit cross layers with vector-valued transforms.
+  avoid_when: Only second-order FM interactions are required.
+  task_types: [ctr, ranking]
+  architecture_roles: [explicit_cross, dcnv2_cross]
+  input_modalities: [flat_embeddings]
+  output_semantics: [cross_representation]
+  objectives: [click_prediction]
+  model_families: [DCNv2]
+  aliases: [dcn v2, crossnet v2, full rank cross]
+  query_examples: [DCNv2 cross layer, explicit cross network v2]
+composition:
+  requires: [flat_embeddings]
+  produces: [cross_output]
+  common_upstream: [flatten_field_embeddings]
+  common_downstream: [concat_fusion, binary_ctr_head]
+  example_genome_fragment: "skill: crossnet_v2\nparams: {input_dim: 64, num_layers: 3}"

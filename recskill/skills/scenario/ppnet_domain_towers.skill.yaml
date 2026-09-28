@@ -1,0 +1,61 @@
+name: ppnet_domain_towers
+category: scenario
+description: Compute one PPNet personalized tower output per domain from a shared gate input.
+inputs:
+  - name: gate_input
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+outputs:
+  - name: domain_outputs
+    shape: "[batch_size, domain_num]"
+    dtype: float32
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - domain_specific_towers
+  - personalized_gate_units
+failure_signatures:
+  - input_dim_mismatch
+  - domain_count_mismatch
+good_for:
+  - PPNet-style domain-specific towers with GateNU modulation
+bad_for:
+  - single-domain models or models with only a shared tower
+compatible_with:
+  upstream:
+    - concat_fusion
+    - domain_indicator_adapter
+  downstream:
+    - domain_select
+source:
+  file: torch_rechub/models/multi_domain/ppnet.py
+  class_or_function: PPTowerBlock
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for PPNet-style personalized gated towers across domains."
+  use_when:
+    - "A model computes one gated tower output per domain and selects with domain_indicator."
+  avoid_when:
+    - "All domains should share the same prediction tower."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [domain_tower, ppnet_tower, personalized_gate]
+  input_modalities: [gate_input_embedding]
+  output_semantics: [domain_outputs]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [PPNet]
+  aliases: [PPNet tower, personalized propagation tower, domain gated tower]
+  query_examples:
+    - "PPNet domain tower"
+    - "personalized gated towers for multi-domain CTR"
+composition:
+  requires: [gate_input]
+  produces: [domain_outputs]
+  common_upstream: [concat_fusion]
+  common_downstream: [domain_select]
+  example_genome_fragment:
+    skill: ppnet_domain_towers
+    params:
+      input_key: gate_input
+      output_key: domain_outputs
+      input_dim: "${input_dim}"
+      domain_num: "${domain_num}"
+      fcn_dims: "${fcn_dims}"

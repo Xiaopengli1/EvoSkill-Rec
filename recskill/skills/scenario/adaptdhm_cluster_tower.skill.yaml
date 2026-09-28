@@ -1,0 +1,64 @@
+name: adaptdhm_cluster_tower
+category: scenario
+description: Route examples to latent clusters and select cluster-specific product-weight FCN outputs.
+inputs:
+  - name: flat_embeddings
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+outputs:
+  - name: prediction
+    shape: "[batch_size]"
+    dtype: float32
+  - name: cluster_id
+    shape: "[batch_size]"
+    dtype: int64
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - latent_domain_clustering
+  - shared_specific_weight_products
+failure_signatures:
+  - input_dim_mismatch
+  - cluster_count_mismatch
+good_for:
+  - AdaptDHM-style latent distribution clusters for multi-domain CTR
+bad_for:
+  - models with known explicit domain labels that should not infer latent clusters
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+  downstream:
+    - bce_loss
+source:
+  file: torch_rechub/models/multi_domain/adaptdhm.py
+  class_or_function: AdaptDHM
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for AdaptDHM-style latent cluster routing and cluster-specific FCN outputs."
+  use_when:
+    - "The model infers latent clusters from the input representation before selecting a prediction path."
+  avoid_when:
+    - "The domain id is explicitly provided and must be used as a hard router."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [latent_domain_router, cluster_tower, adaptdhm]
+  input_modalities: [flat_embeddings]
+  output_semantics: [prediction, cluster_id]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [AdaptDHM]
+  aliases: [AdaptDHM, latent cluster router, adaptive distribution hierarchy]
+  query_examples:
+    - "AdaptDHM cluster tower"
+    - "latent domain cluster routing"
+composition:
+  requires: [flat_embeddings]
+  produces: [prediction, cluster_id]
+  common_upstream: [field_embedding, flatten_field_embeddings]
+  common_downstream: [bce_loss]
+  example_genome_fragment:
+    skill: adaptdhm_cluster_tower
+    params:
+      input_key: flat_embeddings
+      output_key: prediction
+      cluster_key: cluster_id
+      input_dim: "${input_dim}"
+      fcn_dims: "${fcn_dims}"
+      cluster_num: "${cluster_num}"

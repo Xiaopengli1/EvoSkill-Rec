@@ -1,0 +1,53 @@
+name: tied_embedding_lm_head
+skill_id: tied_embedding_lm_head
+category: head
+description: HSTU-style tied embedding output projection.
+inputs:
+- name: sequence_output
+  shape: '[batch_size, seq_len, d_model]'
+outputs:
+- name: logits
+  shape: '[batch_size, seq_len, vocab_size]'
+task_types: &id001
+- generative
+- sequence
+source:
+  file: torch_rechub/models/generative/hstu.py
+  class_or_function: tied token_embedding output projection
+  extraction_type: reimplemented_exact
+retrieval:
+  summary: Use this when output logits should reuse token/item embedding weights.
+  task_types:
+  - generative
+  - sequence
+  architecture_roles:
+  - head
+  - tied_lm_head
+  input_modalities:
+  - sequence_output
+  output_semantics:
+  - logits
+  model_families:
+  - HSTU
+  aliases:
+  - tied embedding head
+  - tied LM head
+  use_when:
+  - Use this when output logits should reuse token/item embedding weights.
+  avoid_when:
+  - A different Torch-RecHub model capability or incompatible tensor contract is required.
+  objectives: *id001
+  query_examples:
+  - Use this when output logits should reuse token/item embedding weights.
+composition:
+  requires:
+  - sequence_output
+  produces:
+  - logits
+  common_downstream:
+  - sequence_cross_entropy_loss
+  common_upstream:
+  - context
+  example_genome_fragment:
+    skill: tied_embedding_lm_head
+    params: {}

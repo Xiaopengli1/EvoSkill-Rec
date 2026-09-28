@@ -1,0 +1,69 @@
+name: hamur_domain_adapter_tower
+category: scenario
+description: Compute HAMUR-style domain tower outputs with hypernetwork-generated adapter cells.
+inputs:
+  - name: flat_embeddings
+    shape: "[batch_size, input_dim]"
+    dtype: float32
+  - name: domain_id
+    shape: "[batch_size]"
+    dtype: int64
+outputs:
+  - name: prediction
+    shape: "[batch_size]"
+    dtype: float32
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - hypernetwork_adapter
+  - domain_specific_towers
+failure_signatures:
+  - input_dim_mismatch
+  - domain_id_out_of_range
+good_for:
+  - HAMUR-style small and large multi-domain towers with explicit domain ids and adapter layers
+bad_for:
+  - models that infer latent clusters instead of reading a domain indicator
+compatible_with:
+  upstream:
+    - field_embedding
+    - flatten_field_embeddings
+    - domain_indicator_adapter
+  downstream:
+    - bce_loss
+source:
+  file: torch_rechub/models/multi_domain/hamur.py
+  class_or_function: HamurSmall/HamurLarge
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for HAMUR-style domain-specific towers with hypernetwork adapter cells."
+  use_when:
+    - "Each domain has its own tower and a hypernetwork produces low-rank adapter weights per instance."
+    - "The batch provides an explicit domain_indicator for output selection."
+  avoid_when:
+    - "The model is a simple shared-bottom tower without adapter cells."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [hypernetwork_adapter, domain_tower, hamur_adapter]
+  input_modalities: [flat_embeddings, domain_ids]
+  output_semantics: [prediction]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [HamurSmall, HamurLarge, HAMUR]
+  aliases: [HAMUR, HamurSmall, HamurLarge, domain adapter tower]
+  query_examples:
+    - "HAMUR hypernetwork adapter"
+    - "domain tower with adapter cell"
+composition:
+  requires: [flat_embeddings, domain_id]
+  produces: [prediction]
+  common_upstream: [field_embedding, flatten_field_embeddings, domain_indicator_adapter]
+  common_downstream: [bce_loss]
+  example_genome_fragment:
+    skill: hamur_domain_adapter_tower
+    params:
+      input_key: flat_embeddings
+      domain_key: domain_id
+      output_key: prediction
+      input_dim: "${input_dim}"
+      domain_num: "${domain_num}"
+      fcn_dims: "${fcn_dims}"
+      hyper_dims: "${hyper_dims}"
+      k: "${k}"

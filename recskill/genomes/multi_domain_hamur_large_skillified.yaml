@@ -1,0 +1,42 @@
+model_name: multi_domain_hamur_large_skillified
+task_type: multi_domain
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+  domain_indicator:
+    shape: [batch_size]
+    dtype: int64
+
+skills:
+  - id: domain_adapter
+    skill: domain_indicator_adapter
+    params:
+      input_key: domain_indicator
+      output_key: domain_id
+      num_domains: ${domain_num}
+
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: field_embeddings
+      output_key: flat_embeddings
+
+  - id: adapter_tower
+    skill: hamur_domain_adapter_tower
+    params:
+      input_key: flat_embeddings
+      domain_key: domain_id
+      output_key: prediction
+      input_dim: ${input_dim}
+      domain_num: ${domain_num}
+      fcn_dims: ${fcn_dims}
+      hyper_dims: ${hyper_dims}
+      k: ${k}

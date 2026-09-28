@@ -1,0 +1,1018 @@
+schema_version: 1
+coverage_levels:
+  L0: Not skillified. No recskill genome exists.
+  L1: Shape-compatible genome exists and dummy forward passes.
+  L2: Main architecture path is decomposed into reusable skills.
+  L3: Key intermediate shapes and short training smoke tests pass.
+  L4: Behavior-compatible with original model interface and trainer path.
+  L5: Ready for retrieval-driven composition and architecture mutation.
+models:
+- name: DeepFM
+  domain: ranking
+  source_file: torch_rechub/models/ranking/deepfm.py
+  source_class: DeepFM
+  status: L2
+  genome: recskill/genomes/deepfm_skillified.yaml
+  output_contract:
+    logits: '[batch_size, 1]'
+    loss: '[]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - linear_logit
+  - fm_interaction
+  - mlp_tower
+  - additive_fusion
+  - sigmoid_prediction
+  - bce_loss
+  - named_feature_dict_adapter
+  - dense_feature_path
+  missing_components: []
+  tests:
+  - tests/recskill/test_genome_build.py
+  - tests/recskill/test_training_smoke.py
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: DCN
+  domain: ranking
+  source_file: torch_rechub/models/ranking/dcn.py
+  source_class: DCN
+  status: L2
+  genome: recskill/genomes/dcn_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - crossnet_v1
+  - mlp_tower
+  - concat_fusion
+  - binary_ctr_head
+  - sigmoid_prediction
+  - named_feature_dict_adapter
+  - dense_feature_path
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: DIN
+  domain: ranking
+  source_file: torch_rechub/models/ranking/din.py
+  source_class: DIN
+  status: L2
+  genome: recskill/genomes/din_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - sequence_field_embedding
+  - din_target_attention
+  - flatten_field_embeddings
+  - concat_fusion
+  - mlp_tower
+  - sigmoid_prediction
+  - sequence_mask
+  - named_feature_dict_adapter
+  - dien_auxiliary_interest_loss
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: SASRec
+  domain: matching
+  source_file: torch_rechub/models/matching/sasrec.py
+  source_class: SASRec
+  status: L2
+  genome: recskill/genomes/sasrec_skillified.yaml
+  output_contract:
+    pos_logits: '[batch_size, seq_len]'
+    neg_logits: '[batch_size, seq_len]'
+  covered_components:
+  - shared_sequence_embedding
+  - sasrec_sequence_encoder
+  - sasrec_pairwise_logits
+  - mode_user_item_adapter
+  - in_batch_negative_head
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MMOE
+  domain: multi_task
+  source_file: torch_rechub/models/multi_task/mmoe.py
+  source_class: MMOE
+  status: L2
+  genome: recskill/genomes/mmoe_skillified.yaml
+  output_contract:
+    task_outputs: '[batch_size, n_task]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - mmoe_gate
+  - task_tower
+  - named_feature_dict_adapter
+  - multitask_loss
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: WideDeep
+  domain: ranking
+  source_file: torch_rechub/models/ranking/widedeep.py
+  source_class: WideDeep
+  status: L2
+  genome: recskill/genomes/widedeep_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - linear_logit
+  - mlp_tower
+  - additive_fusion
+  - sigmoid_prediction
+  - named_feature_dict_adapter
+  - dense_feature_path
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: DCNv2
+  domain: ranking
+  source_file: torch_rechub/models/ranking/dcn_v2.py
+  source_class: DCNv2
+  status: L2
+  genome: recskill/genomes/dcnv2_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - crossnet_mix
+  - mlp_tower
+  - concat_fusion
+  - linear_logit
+  - sigmoid_prediction
+  - crossnet_v2
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: EDCN
+  domain: ranking
+  source_file: torch_rechub/models/ranking/edcn.py
+  source_class: EDCN
+  status: L2
+  genome: recskill/genomes/edcn_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - edcn_bridge_stack
+  - concat_fusion
+  - linear_logit
+  - sigmoid_prediction
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: AFM
+  domain: ranking
+  source_file: torch_rechub/models/ranking/afm.py
+  source_class: AFM
+  status: L2
+  genome: recskill/genomes/afm_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - linear_logit
+  - afm_attention_pooling
+  - binary_ctr_head
+  - additive_fusion
+  - sigmoid_prediction
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: AutoInt
+  domain: ranking
+  source_file: torch_rechub/models/ranking/autoint.py
+  source_class: AutoInt
+  status: L2
+  genome: recskill/genomes/autoint_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - linear_logit
+  - autoint_attention
+  - binary_ctr_head
+  - mlp_tower
+  - additive_fusion
+  - sigmoid_prediction
+  - dense_feature_path
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: FiBiNet
+  domain: ranking
+  source_file: torch_rechub/models/ranking/fibinet.py
+  source_class: FiBiNet
+  status: L2
+  genome: recskill/genomes/fibinet_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - senet_feature_gate
+  - bilinear_interaction
+  - concat_fusion
+  - flatten_field_embeddings
+  - mlp_tower
+  - sigmoid_prediction
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: DeepFFM
+  domain: ranking
+  source_file: torch_rechub/models/ranking/deepffm.py
+  source_class: DeepFFM
+  status: L2
+  genome: recskill/genomes/deepffm_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - field_sum
+  - ffm_interaction
+  - flatten_field_embeddings
+  - mlp_tower
+  - additive_fusion
+  - sigmoid_prediction
+  - field_aware_embedding_adapter
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: FatDeepFFM
+  domain: ranking
+  source_file: torch_rechub/models/ranking/deepffm.py
+  source_class: FatDeepFFM
+  status: L2
+  genome: recskill/genomes/fatdeepffm_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - field_sum
+  - ffm_interaction
+  - cen_feature_gate
+  - mlp_tower
+  - additive_fusion
+  - sigmoid_prediction
+  - field_aware_embedding_adapter
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: BST
+  domain: ranking
+  source_file: torch_rechub/models/ranking/bst.py
+  source_class: BST
+  status: L2
+  genome: recskill/genomes/bst_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - sequence_field_embedding
+  - target_append_sequence
+  - transformer_sequence_encoder
+  - sequence_pooling
+  - flatten_field_embeddings
+  - concat_fusion
+  - mlp_tower
+  - sigmoid_prediction
+  - dense_feature_path
+  - exact_leakyrelu_transformer_encoder
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: DIEN
+  domain: ranking
+  source_file: torch_rechub/models/ranking/dien.py
+  source_class: DIEN
+  status: L2
+  genome: recskill/genomes/dien_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - sequence_field_embedding
+  - dien_interest_evolution
+  - flatten_field_embeddings
+  - concat_fusion
+  - mlp_tower
+  - sigmoid_prediction
+  - full_augru_evolution
+  - dien_auxiliary_interest_loss
+  - named_feature_dict_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: DSSM
+  domain: matching
+  source_file: torch_rechub/models/matching/dssm.py
+  source_class: DSSM
+  status: L2
+  genome: recskill/genomes/dssm_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - mlp_tower
+  - normalize_embedding
+  - dot_product_logits
+  - sigmoid_prediction
+  - named_feature_dict_adapter
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: FaceBookDSSM
+  domain: matching
+  source_file: torch_rechub/models/matching/dssm_facebook.py
+  source_class: FaceBookDSSM
+  status: L2
+  genome: recskill/genomes/facebook_dssm_skillified.yaml
+  output_contract:
+    pos_logits: '[batch_size]'
+    neg_logits: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - mlp_tower
+  - shared_mlp_tower
+  - normalize_embedding
+  - dot_product_logits
+  - named_feature_dict_adapter
+  - hinge_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: DSSM_SENET
+  domain: matching
+  source_file: torch_rechub/models/matching/dssm_senet.py
+  source_class: DSSM
+  status: L2
+  genome: recskill/genomes/dssm_senet_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - senet_feature_gate
+  - flatten_field_embeddings
+  - mlp_tower
+  - normalize_embedding
+  - dot_product_logits
+  - sigmoid_prediction
+  - named_feature_dict_adapter
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: YoutubeDNN
+  domain: matching
+  source_file: torch_rechub/models/matching/youtube_dnn.py
+  source_class: YoutubeDNN
+  status: L2
+  genome: recskill/genomes/youtube_dnn_skillified.yaml
+  output_contract:
+    scores: '[batch_size, 1 + n_neg]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - mlp_tower
+  - normalize_embedding
+  - shared_sequence_embedding
+  - concat_fusion
+  - candidate_dot_logits
+  - named_feature_dict_adapter
+  - sampled_softmax_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: YoutubeSBC
+  domain: matching
+  source_file: torch_rechub/models/matching/youtube_sbc.py
+  source_class: YoutubeSBC
+  status: L2
+  genome: recskill/genomes/youtube_sbc_skillified.yaml
+  output_contract:
+    scores: '[batch_size, 1 + n_neg]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - mlp_tower
+  - inbatch_sampled_logits
+  - named_feature_dict_adapter
+  - in_batch_nce_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: GRU4Rec
+  domain: matching
+  source_file: torch_rechub/models/matching/gru4rec.py
+  source_class: GRU4Rec
+  status: L2
+  genome: recskill/genomes/gru4rec_skillified.yaml
+  output_contract:
+    scores: '[batch_size, 1 + n_neg]'
+  covered_components:
+  - field_embedding
+  - shared_sequence_embedding
+  - gru_sequence_encoder
+  - concat_fusion
+  - mlp_tower
+  - normalize_embedding
+  - candidate_dot_logits
+  - named_feature_dict_adapter
+  - sampled_softmax_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: NARM
+  domain: matching
+  source_file: torch_rechub/models/matching/narm.py
+  source_class: NARM
+  status: L2
+  genome: recskill/genomes/narm_skillified.yaml
+  output_contract:
+    scores: '[batch_size]'
+  covered_components:
+  - shared_sequence_embedding
+  - narm_session_encoder
+  - candidate_dot_logits
+  - all_item_scoring_adapter
+  - named_feature_dict_adapter
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MIND
+  domain: matching
+  source_file: torch_rechub/models/matching/mind.py
+  source_class: MIND
+  status: L2
+  genome: recskill/genomes/mind_skillified.yaml
+  output_contract:
+    scores: '[batch_size, 1 + n_neg]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - shared_sequence_embedding
+  - multi_interest_extractor
+  - multi_interest_fusion
+  - normalize_embedding
+  - candidate_dot_logits
+  - named_feature_dict_adapter
+  - sampled_softmax_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: ComirecSA
+  domain: matching
+  source_file: torch_rechub/models/matching/comirec.py
+  source_class: ComirecSA
+  status: L2
+  genome: recskill/genomes/comirec_sa_skillified.yaml
+  output_contract:
+    scores: '[batch_size, 1 + n_neg]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - shared_sequence_embedding
+  - multi_interest_extractor
+  - multi_interest_fusion
+  - normalize_embedding
+  - candidate_dot_logits
+  - named_feature_dict_adapter
+  - sampled_softmax_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: ComirecDR
+  domain: matching
+  source_file: torch_rechub/models/matching/comirec.py
+  source_class: ComirecDR
+  status: L2
+  genome: recskill/genomes/comirec_dr_skillified.yaml
+  output_contract:
+    scores: '[batch_size, 1 + n_neg]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - shared_sequence_embedding
+  - multi_interest_extractor
+  - multi_interest_fusion
+  - normalize_embedding
+  - candidate_dot_logits
+  - named_feature_dict_adapter
+  - sampled_softmax_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: SINE
+  domain: matching
+  source_file: torch_rechub/models/matching/sine.py
+  source_class: SINE
+  status: L2
+  genome: recskill/genomes/sine_skillified.yaml
+  output_contract:
+    scores: '[batch_size, 1 + n_neg]'
+  covered_components:
+  - shared_sequence_embedding
+  - sine_interest_encoder
+  - concat_fusion
+  - candidate_dot_logits
+  - covariance_regularizer
+  - named_feature_dict_adapter
+  - sampled_softmax_loss
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: STAMP
+  domain: matching
+  source_file: torch_rechub/models/matching/stamp.py
+  source_class: STAMP
+  status: L2
+  genome: recskill/genomes/stamp_skillified.yaml
+  output_contract:
+    scores: '[batch_size]'
+  covered_components:
+  - shared_sequence_embedding
+  - stamp_session_encoder
+  - candidate_dot_logits
+  - all_item_scoring_adapter
+  - named_feature_dict_adapter
+  - mode_user_item_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: SharedBottom
+  domain: multi_task
+  source_file: torch_rechub/models/multi_task/shared_bottom.py
+  source_class: SharedBottom
+  status: L2
+  genome: recskill/genomes/shared_bottom_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - shared_bottom_tower
+  - task_replication
+  - task_tower
+  - named_feature_dict_adapter
+  - multitask_loss
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: PLE
+  domain: multi_task
+  source_file: torch_rechub/models/multi_task/ple.py
+  source_class: PLE
+  status: L2
+  genome: recskill/genomes/ple_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - ple_gate
+  - task_tower
+  - multi_level_cgc
+  - named_feature_dict_adapter
+  - multitask_loss
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: ESMM
+  domain: multi_task
+  source_file: torch_rechub/models/multi_task/esmm.py
+  source_class: ESMM
+  status: L2
+  genome: recskill/genomes/esmm_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - concat_fusion
+  - mlp_tower
+  - esmm_chain_head
+  - named_feature_dict_adapter
+  - multitask_loss
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: AITM
+  domain: multi_task
+  source_file: torch_rechub/models/multi_task/aitm.py
+  source_class: AITM
+  status: L2
+  genome: recskill/genomes/aitm_skillified.yaml
+  output_contract: {}
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - task_specific_towers
+  - aitm_transfer
+  - task_tower
+  - exact_attention_transfer
+  - named_feature_dict_adapter
+  - multitask_loss
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainSharedBottom
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/sharebottom.py
+  source_class: SharedBottom
+  status: L2
+  genome: recskill/genomes/multi_domain_shared_bottom_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - shared_bottom_tower
+  - task_replication
+  - task_tower
+  - domain_select
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainMMOE
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/mmoe.py
+  source_class: MMOE
+  status: L2
+  genome: recskill/genomes/multi_domain_mmoe_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - mmoe_gate
+  - task_tower
+  - domain_select
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainPLE
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/ple.py
+  source_class: PLE
+  status: L2
+  genome: recskill/genomes/multi_domain_ple_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - multi_level_cgc
+  - task_tower
+  - domain_select
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainAdaSparse
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/adasparse.py
+  source_class: AdaSparse
+  status: L2
+  genome: recskill/genomes/multi_domain_adasparse_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - adasparse_pruned_tower
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainEPNet
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/epnet.py
+  source_class: EPNet
+  status: L2
+  genome: recskill/genomes/multi_domain_epnet_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - gate_nu_feature_gate
+  - mlp_tower
+  - sigmoid_prediction
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainPPNet
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/ppnet.py
+  source_class: PPNet
+  status: L2
+  genome: recskill/genomes/multi_domain_ppnet_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - concat_fusion
+  - domain_indicator_adapter
+  - ppnet_domain_towers
+  - domain_select
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainStar
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/star.py
+  source_class: Star
+  status: L2
+  genome: recskill/genomes/multi_domain_star_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - star_domain_fcn
+  - domain_select
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainSarnet
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/sarnet.py
+  source_class: Sarnet
+  status: L2
+  genome: recskill/genomes/multi_domain_sarnet_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - sarnet_expert_mixer
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainAdaptDHM
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/adaptdhm.py
+  source_class: AdaptDHM
+  status: L2
+  genome: recskill/genomes/multi_domain_adaptdhm_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - adaptdhm_cluster_tower
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainM2M
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/m2m.py
+  source_class: M2M
+  status: L2
+  genome: recskill/genomes/multi_domain_m2m_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - m2m_meta_tower
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainHamurSmall
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/hamur.py
+  source_class: HamurSmall
+  status: L2
+  genome: recskill/genomes/multi_domain_hamur_small_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - hamur_domain_adapter_tower
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainHamurLarge
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/hamur.py
+  source_class: HamurLarge
+  status: L2
+  genome: recskill/genomes/multi_domain_hamur_large_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - hamur_domain_adapter_tower
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: MultiDomainM3oE
+  domain: multi_domain
+  source_file: torch_rechub/models/multi_domain/m3oe.py
+  source_class: M3oE
+  status: L2
+  genome: recskill/genomes/multi_domain_m3oe_skillified.yaml
+  output_contract:
+    prediction: '[batch_size]'
+  covered_components:
+  - field_embedding
+  - flatten_field_embeddings
+  - domain_indicator_adapter
+  - m3oe_expert_fusion
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: HSTUModel
+  domain: generative
+  source_file: torch_rechub/models/generative/hstu.py
+  source_class: HSTUModel
+  status: L2
+  genome: recskill/genomes/hstu_skillified.yaml
+  output_contract:
+    logits: '[batch_size, seq_len, vocab_size]'
+  covered_components:
+  - shared_sequence_embedding
+  - hstu_sequence_encoder
+  - sequence_lm_head
+  - tied_embedding_lm_head
+  - time_bucket_embedding
+  - sequence_cross_entropy_loss
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: HLLMModel
+  domain: generative
+  source_file: torch_rechub/models/generative/hllm.py
+  source_class: HLLMModel
+  status: L2
+  genome: recskill/genomes/hllm_skillified.yaml
+  output_contract:
+    logits: '[batch_size, seq_len, vocab_size]'
+  covered_components:
+  - shared_sequence_embedding
+  - transformer_sequence_encoder
+  - sequence_lm_head
+  - precomputed_item_embedding_adapter
+  - relative_position_bias
+  - normalized_item_dot_head
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: RQVAEModel
+  domain: generative
+  source_file: torch_rechub/models/generative/rqvae.py
+  source_class: RQVAEModel
+  status: L2
+  genome: recskill/genomes/rqvae_skillified.yaml
+  output_contract:
+    quantized: '[batch_size, latent_dim]'
+    reconstruction: '[batch_size, input_dim]'
+    rqvae_loss: '[]'
+  covered_components:
+  - rqvae_quantization
+  - exact_residual_quantizer_stack
+  - kmeans_sinkhorn_initialization
+  - semantic_id_export_adapter
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter
+- name: TIGERModel
+  domain: generative
+  source_file: torch_rechub/models/generative/tiger.py
+  source_class: TIGERModel
+  status: L2
+  genome: recskill/genomes/tiger_skillified.yaml
+  output_contract:
+    logits: '[batch_size, seq_len, vocab_size]'
+  covered_components:
+  - shared_sequence_embedding
+  - transformer_sequence_encoder
+  - sequence_lm_head
+  - exact_t5_encoder_decoder
+  - ranking_loss_temperature
+  - trie_constrained_decoding
+  missing_components: []
+  tests:
+  - tests/recskill/test_model_genomes_shape_alignment.py
+  non_model_components:
+  - trainer_adapter

@@ -1,0 +1,66 @@
+name: gate_nu_feature_gate
+category: scenario
+description: Apply an EPNet-style GateNU feature gate conditioned on scenario and agnostic representations.
+inputs:
+  - name: scenario_context
+    shape: "[batch_size, scenario_dim]"
+    dtype: float32
+  - name: feature_representation
+    shape: "[batch_size, feature_dim]"
+    dtype: float32
+outputs:
+  - name: gated_features
+    shape: "[batch_size, feature_dim]"
+    dtype: float32
+  - name: gate_values
+    shape: "[batch_size, feature_dim]"
+    dtype: float32
+task_types: [multi_domain, ctr, ranking]
+inductive_bias:
+  - scenario_conditioned_feature_gating
+failure_signatures:
+  - scenario_dim_mismatch
+  - feature_dim_mismatch
+good_for:
+  - EPNet-style scenario-conditioned feature recalibration
+bad_for:
+  - hard domain selection where only one domain tower should be active
+compatible_with:
+  upstream:
+    - flatten_field_embeddings
+    - concat_fusion
+  downstream:
+    - mlp_tower
+source:
+  file: torch_rechub/basic/layers.py
+  class_or_function: GateNU
+  extraction_type: wrapped
+retrieval:
+  summary: "Use this for EPNet-style scenario-conditioned feature gating."
+  use_when:
+    - "Scenario embeddings should gate agnostic feature embeddings before a prediction tower."
+  avoid_when:
+    - "The architecture uses hard per-domain tower selection instead of feature recalibration."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [scenario_gate, feature_recalibration, epnet_gate]
+  input_modalities: [scenario_embeddings, feature_embeddings]
+  output_semantics: [gated_features, gate_values]
+  objectives: [multi_domain_prediction, click_prediction]
+  model_families: [EPNet, PPNet]
+  aliases: [GateNU, EPNet gate, scenario feature gate]
+  query_examples:
+    - "EPNet scenario gate"
+    - "gate agnostic features by domain embedding"
+composition:
+  requires: [scenario_context, feature_representation]
+  produces: [gated_features, gate_values]
+  common_upstream: [field_embedding, flatten_field_embeddings]
+  common_downstream: [mlp_tower, sigmoid_prediction]
+  example_genome_fragment:
+    skill: gate_nu_feature_gate
+    params:
+      scenario_dim: "${scenario_dim}"
+      feature_dim: "${agnostic_dim}"
+      scenario_key: scenario_flat
+      feature_key: agnostic_flat
+      output_key: gated_agnostic

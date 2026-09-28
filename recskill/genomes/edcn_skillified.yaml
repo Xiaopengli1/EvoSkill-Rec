@@ -1,0 +1,49 @@
+model_name: edcn_skillified
+task_type: ctr
+
+inputs:
+  sparse_features:
+    shape: [batch_size, num_fields]
+    dtype: int64
+
+skills:
+  - id: field_embedding
+    skill: field_embedding
+    params:
+      vocab_sizes: ${vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: flatten
+    skill: flatten_field_embeddings
+
+  - id: edcn_stack
+    skill: edcn_bridge_stack
+    params:
+      input_key: flat_embeddings
+      input_dim: ${flat_input_dim}
+      num_fields: ${num_fields}
+      field_dims: ${field_dims}
+      n_cross_layers: ${n_cross_layers}
+      hidden_dims: ${hidden_dims}
+      bridge_type: ${bridge_type}
+      use_regulation_module: ${use_regulation_module}
+      temperature: ${temperature}
+
+  - id: stack
+    skill: concat_fusion
+    params:
+      input_keys: [cross_output, deep_output, bridge_output]
+      output_key: edcn_stack_output
+
+  - id: head
+    skill: linear_logit
+    params:
+      input_key: edcn_stack_output
+      output_key: logits
+      input_dim: ${edcn_fusion_dim}
+
+  - id: prediction
+    skill: sigmoid_prediction
+    params:
+      input_key: logits
+      output_key: prediction

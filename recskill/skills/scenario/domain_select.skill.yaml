@@ -1,0 +1,69 @@
+name: domain_select
+category: scenario
+description: Gather each sample's active domain output from a [batch_size, domain_num, ...] tensor.
+inputs:
+  - name: domain_outputs
+    shape: "[batch_size, domain_num, ...]"
+    dtype: float32
+  - name: domain_id
+    shape: "[batch_size]"
+    dtype: int64
+outputs:
+  - name: prediction
+    shape: "[batch_size, ...]"
+    dtype: float32
+task_types:
+  - multi_domain
+  - ctr
+  - ranking
+inductive_bias:
+  - scenario_conditioning
+  - samplewise_domain_routing
+failure_signatures:
+  - domain_axis_missing
+  - domain_id_out_of_range
+  - batch_size_mismatch
+good_for:
+  - selecting a sample's active domain prediction from all domain towers
+bad_for:
+  - soft domain mixtures where all domains should contribute continuously
+compatible_with:
+  upstream:
+    - task_tower
+    - domain_indicator_adapter
+  downstream:
+    - bce_loss
+constraints:
+  domain_axis: 1
+source:
+  file: torch_rechub/models/multi_domain
+  class_or_function: torch.where domain mask selection
+  extraction_type: extracted
+retrieval:
+  summary: "Use this to convert all-domain outputs into the active per-sample prediction."
+  use_when:
+    - "A multi-domain model computes one output per domain and then selects by domain_indicator."
+    - "The candidate tensor is shaped [batch_size, domain_num] or [batch_size, domain_num, dim]."
+  avoid_when:
+    - "The model blends domains with learned soft weights instead of hard sample routing."
+  task_types: [multi_domain, ctr, ranking]
+  architecture_roles: [domain_routing, scenario_selection, hard_router]
+  input_modalities: [domain_outputs, domain_ids]
+  output_semantics: [prediction, selected_domain_output]
+  objectives: [multi_domain_prediction, click_prediction, ranking_score]
+  model_families: [SharedBottom, MMOE, PLE, Star, PPNet, Sarnet, Hamur]
+  aliases: [domain select, scenario select, hard domain router, domain gather]
+  query_examples:
+    - "select active domain output"
+    - "gather prediction by domain id"
+composition:
+  requires: [domain_outputs, domain_id]
+  produces: [prediction]
+  common_upstream: [task_tower, domain_indicator_adapter]
+  common_downstream: [bce_loss]
+  example_genome_fragment:
+    skill: domain_select
+    params:
+      input_key: domain_outputs
+      domain_key: domain_id
+      output_key: prediction

@@ -1,0 +1,30 @@
+conda_env: rechub
+gpu_ids: [0, 1, 2, 3, 4, 5, 6, 7]
+max_parallel: 8
+python_module: rec_skill_genome.evolution.ctr_workflow
+log_dir: outputs/evolution/debug_results_launcher_logs
+aggregate_results_path:
+aggregate_summary_path:
+aggregate_results_csv_path: outputs/evolution/aggregate_results.csv
+snapshot_interval_sec: 0
+write_task_logs: false
+write_launcher_summary: false
+write_aggregate_outputs: false
+write_aggregate_results_csv: true
+
+tasks:
+  - name: ctr_movielens_seed2022
+    config: examples/evolution/ctr_movielens_evolution.yaml
+    output_dir: outputs/evolution/debug_results_seed2022
+    device: cuda:0
+    extra_args: ["--seed", "2022"]
+  - name: ctr_movielens_seed2023
+    config: examples/evolution/ctr_movielens_evolution.yaml
+    output_dir: outputs/evolution/debug_results_seed2023
+    device: cuda:0
+    extra_args: ["--seed", "2023"]
+  - name: ctr_movielens_seed2024
+    config: examples/evolution/ctr_movielens_evolution.yaml
+    output_dir: outputs/evolution/debug_results_seed2024
+    device: cuda:0
+    extra_args: ["--seed", "2024"]

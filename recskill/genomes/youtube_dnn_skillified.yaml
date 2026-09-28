@@ -1,0 +1,74 @@
+model_name: youtube_dnn_skillified
+task_type: matching
+
+inputs:
+  user_features:
+    shape: [batch_size, num_user_fields]
+    dtype: int64
+  pos_item_features:
+    shape: [batch_size, 1]
+    dtype: int64
+  neg_item_features:
+    shape: [batch_size, n_neg]
+    dtype: int64
+
+skills:
+  - id: user_embedding
+    skill: field_embedding
+    params:
+      input_key: user_features
+      output_key: user_field_embeddings
+      vocab_sizes: ${user_vocab_sizes}
+      embedding_dim: ${embedding_dim}
+
+  - id: user_flatten
+    skill: flatten_field_embeddings
+    params:
+      input_key: user_field_embeddings
+      output_key: user_flat
+
+  - id: user_tower
+    skill: mlp_tower
+    params:
+      input_key: user_flat
+      output_key: user_raw
+      input_dim: ${user_input_dim}
+      hidden_dims: ${user_hidden_dims}
+      dropout: 0.0
+      activation: relu
+      output_layer: false
+
+  - id: user_normalize
+    skill: normalize_embedding
+    params:
+      input_key: user_raw
+      output_key: user_embedding
+
+  - id: item_embedding
+    skill: shared_sequence_embedding
+    params:
+      input_keys: [pos_item_features, neg_item_features]
+      output_keys: [pos_item_embeddings, neg_item_embeddings]
+      vocab_size: ${item_vocab_size}
+      embedding_dim: ${embedding_dim}
+
+  - id: item_candidates
+    skill: concat_fusion
+    params:
+      input_keys: [pos_item_embeddings, neg_item_embeddings]
+      output_key: item_candidates
+      dim: 1
+
+  - id: item_normalize
+    skill: normalize_embedding
+    params:
+      input_key: item_candidates
+      output_key: item_candidate_embeddings
+
+  - id: score
+    skill: candidate_dot_logits
+    params:
+      user_key: user_embedding
+      candidate_key: item_candidate_embeddings
+      output_key: scores
+      temperature: ${temperature}

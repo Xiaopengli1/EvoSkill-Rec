@@ -1,0 +1,25 @@
+conda_env: rechub
+gpu_ids: [0, 1]
+max_parallel: 2
+python_module: rec_skill_genome.evolution.ctr_workflow
+log_dir: outputs/evolution/amazon_launcher_logs
+aggregate_results_path:
+aggregate_summary_path:
+aggregate_results_csv_path: outputs/evolution/amazon_aggregate_results.csv
+snapshot_interval_sec: 0
+write_task_logs: true
+write_launcher_summary: true
+write_aggregate_outputs: true
+write_aggregate_results_csv: true
+
+tasks:
+  - name: ctr_amazon_beauty_seed2022
+    config: examples/evolution/ctr_amazon_beauty_evolution.yaml
+    output_dir: outputs/evolution/ctr_amazon_beauty_seed2022
+    device: cuda:0
+    extra_args: ["--seed", "2022"]
+  - name: ctr_amazon_books_seed2022
+    config: examples/evolution/ctr_amazon_books_evolution.yaml
+    output_dir: outputs/evolution/ctr_amazon_books_seed2022
+    device: cuda:0
+    extra_args: ["--seed", "2022"]
